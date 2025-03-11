@@ -18,10 +18,6 @@
             background: #f5f5f5;
             border-radius: 8px;
         }
-        .verse-number {
-            font-weight: bold;
-            color: #2c3e50;
-        }
         .theme {
             margin: 40px 0;
             padding: 20px;
@@ -45,71 +41,66 @@
     <div id="error-message" class="error"></div>
 
     <script>
-        let quranData; // Global variable to store Quran data
+        let quranData = [];
 
-        // Fetch Quran data
         async function loadQuran() {
             try {
                 const response = await fetch('Quran.json');
-                quranData = await response.json();
-                displayQuran(quranData);
+                const data = await response.json();
+                quranData = data['Verses English'] || [];
+                console.log('Loaded Quran data:', quranData.length, 'verses');
+                return quranData;
             } catch (error) {
-                showError('Failed to load Quran data');
-                console.error(error);
+                showError('Failed to load Quran');
+                console.error('Quran load error:', error);
+                return [];
             }
         }
 
-        // Fetch Themes data
         async function loadThemes() {
             try {
                 const response = await fetch('Themes.json');
-                const themesData = await response.json();
-                displayThemes(themesData);
+                const data = await response.json();
+                const themes = data['Themes of Quran'] || [];
+                console.log('Loaded Themes data:', themes.length, 'themes');
+                
+                if (!Array.isArray(themes)) {
+                    throw new Error('Themes data is not an array');
+                }
+
+                return themes;
             } catch (error) {
-                showError('Failed to load Themes data');
-                console.error(error);
+                showError('Failed to load Themes');
+                console.error('Themes load error:', error);
+                return [];
             }
         }
 
-        // Display Quran verses
-        function displayQuran(data) {
-            const container = document.getElementById('quran-container');
-            
-            data['Verses English'].forEach(verse => {
-                const verseDiv = document.createElement('div');
-                verseDiv.className = 'verse';
-                verseDiv.innerHTML = `
-                    <div class="verse-number">${verse.chapter_number}:${verse.verse_number}</div>
-                    <div>${verse.text_english}</div>
-                    <div style="direction: rtl; font-family: 'Urdu Naskh', serif;">${verse.text_urdu}</div>
-                `;
-                container.appendChild(verseDiv);
-            });
-        }
-
-        // Display themes with associated verses
-        function displayThemes(themesData) {
+        function displayThemes(themes) {
             const container = document.getElementById('themes-container');
-            
-            themesData['Themes of Quran'].forEach(theme => {
-                // Find matching verses from Quran data
-                const versesInTheme = quranData['Verses English'].filter(verse =>
+            container.innerHTML = '<h2>Themes of the Quran</h2>';
+
+            if (!themes.length) {
+                container.innerHTML += '<p>No themes found</p>';
+                return;
+            }
+
+            themes.forEach(theme => {
+                const versesInRange = quranData.filter(verse =>
                     verse.chapter_number === theme.chapter_number &&
                     verse.verse_number >= theme.start_verse &&
                     verse.verse_number <= theme.end_verse
                 );
 
-                // Create theme container
                 const themeDiv = document.createElement('div');
                 themeDiv.className = 'theme';
                 themeDiv.innerHTML = `
-                    <h3>${theme.theme_name_english}</h3>
-                    <h4>${theme.theme_name_Urdu}</h4>
+                    <h3>${theme.theme_name_english || 'Unnamed Theme'}</h3>
+                    <h4>${theme.theme_name_Urdu || ''}</h4>
                     <p>Chapter ${theme.chapter_number}, Verses ${theme.start_verse}-${theme.end_verse}</p>
                 `;
 
-                // Add verses
-                versesInTheme.forEach(verse => {
+                versesInRange.forEach(verse => {
                     const verseDiv = document.createElement('div');
                     verseDiv.className = 'verse';
                     verseDiv.innerHTML = `
@@ -124,12 +115,18 @@
             });
         }
 
+        async function init() {
+            await loadQuran();
+            const themes = await loadThemes();
+            displayThemes(themes);
+        }
+
         function showError(message) {
             document.getElementById('error-message').textContent = message;
         }
 
-        // Load data sequence
-        loadQuran().then(() => loadThemes());
+        // Start the app
+        init();
     </script>
 </body>
 </html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quran App - Urdu</title>
+    <script>
+        let quranData = {};
+        let themesData = {};
+
+        async function loadJSON() {
+            const quranResponse = await fetch('quran.json');
+            quranData = await quranResponse.json();
+            
+            const themesResponse = await fetch('themes.json');
+            themesData = await themesResponse.json();
+
+            populateChapters();
+            populateThemes();
+        }
+
+        function populateChapters() {
+            let chapterSelect = document.getElementById('chapter');
+            chapterSelect.innerHTML = '';
+            quranData.chapters.forEach(chapter => {
+                let option = document.createElement('option');
+                option.value = chapter.number;
+                option.textContent = `سورة ${chapter.name}`;
+                chapterSelect.appendChild(option);
+            });
+        }
+
+        function populateThemes() {
+            let themeSelect = document.getElementById('theme');
+            themeSelect.innerHTML = '';
+            themesData.themes.forEach(theme => {
+                let option = document.createElement('option');
+                option.value = theme.name;
+                option.textContent = theme.name;
+                themeSelect.appendChild(option);
+            });
+        }
+
+        function showVerses() {
+            let chapterNumber = document.getElementById('chapter').value;
+            let versesDiv = document.getElementById('verses');
+            versesDiv.innerHTML = '';
+
+            let verses = quranData.verses.filter(v => v.chapter_number == chapterNumber);
+            verses.forEach(verse => {
+                let p = document.createElement('p');
+                p.textContent = `${verse.verse_number}: ${verse.text_urdu}`;
+                versesDiv.appendChild(p);
+            });
+        }
+
+        function showThemeVerses() {
+            let themeName = document.getElementById('theme').value;
+            let versesDiv = document.getElementById('verses');
+            versesDiv.innerHTML = '';
+            
+            let theme = themesData.themes.find(t => t.name === themeName);
+            let verses = quranData.verses.filter(v => v.chapter_number == theme.chapter_number && v.verse_number >= theme.start_verse && v.verse_number <= theme.end_verse);
+            
+            verses.forEach(verse => {
+                let p = document.createElement('p');
+                p.textContent = `${verse.chapter_number}:${verse.verse_number}: ${verse.text_urdu}`;
+                versesDiv.appendChild(p);
+            });
+        }
+    </script>
+</head>
+<body onload="loadJSON()">
+    <h1>Quran App - Urdu</h1>
+    <label>سورة منتخب کریں:</label>
+    <select id="chapter" onchange="showVerses()"></select>
+    <br><br>
+    <label>موضوع منتخب کریں:</label>
+    <select id="theme" onchange="showThemeVerses()"></select>
+    <br><br>
+    <div id="verses"></div>
+</body>
+</html>

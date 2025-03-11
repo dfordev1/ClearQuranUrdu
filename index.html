@@ -4,19 +4,96 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quran App - Urdu</title>
+    <style>
+        body {
+            font-family: 'Amiri', 'Scheherazade New', 'Traditional Arabic', Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #43a047;
+            margin-bottom: 30px;
+        }
+        select {
+            padding: 8px;
+            margin: 10px 0;
+            width: 100%;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        label {
+            font-weight: bold;
+            color: #555;
+        }
+        #verses {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        #verses p {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            line-height: 1.6;
+        }
+        .verse-number {
+            font-weight: bold;
+            color: #43a047;
+            margin-left: 8px;
+        }
+    </style>
     <script>
-        let quranData = {};
-        let themesData = {};
+        // Sample data included directly to make the app work without external files
+        const quranData = {
+            chapters: [
+                { number: 1, name: "الفاتحة" },
+                { number: 2, name: "البقرة" },
+                { number: 3, name: "آل عمران" },
+                { number: 4, name: "النساء" },
+                { number: 5, name: "المائدة" }
+            ],
+            verses: [
+                { chapter_number: 1, verse_number: 1, text_urdu: "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ" },
+                { chapter_number: 1, verse_number: 2, text_urdu: "اَلْحَمْدُ لِلّٰهِ رَبِّ الْعٰلَمِيْنَۙ" },
+                { chapter_number: 1, verse_number: 3, text_urdu: "الرَّحْمٰنِ الرَّحِيْمِۙ" },
+                { chapter_number: 1, verse_number: 4, text_urdu: "مٰلِكِ يَوْمِ الدِّيْنِؕ" },
+                { chapter_number: 1, verse_number: 5, text_urdu: "اِيَّاكَ نَعْبُدُ وَاِيَّاكَ نَسْتَعِيْنُؕ" },
+                { chapter_number: 1, verse_number: 6, text_urdu: "اِهْدِنَا الصِّرَاطَ الْمُسْتَقِيْمَۙ" },
+                { chapter_number: 1, verse_number: 7, text_urdu: "صِرَاطَ الَّذِيْنَ اَنْعَمْتَ عَلَيْهِمْ ۙ غَيْرِ الْمَغْضُوْبِ عَلَيْهِمْ وَلَا الضَّآلِّيْنَ" },
+                { chapter_number: 2, verse_number: 1, text_urdu: "الٓمّٓ" },
+                { chapter_number: 2, verse_number: 2, text_urdu: "ذٰلِكَ الْكِتٰبُ لَا رَيْبَ ۚ فِيْهِ ۚ هُدًى لِّلْمُتَّقِيْنَۙ" },
+                { chapter_number: 2, verse_number: 3, text_urdu: "الَّذِيْنَ يُؤْمِنُوْنَ بِالْغَيْبِ وَيُقِيْمُوْنَ الصَّلٰوةَ وَمِمَّا رَزَقْنٰهُمْ يُنْفِقُوْنَۙ" },
+                { chapter_number: 3, verse_number: 1, text_urdu: "الٓمّٓ" },
+                { chapter_number: 3, verse_number: 2, text_urdu: "اَللّٰهُ لَآ اِلٰهَ اِلَّا هُوَۚ اَلْحَيُّ الْقَيُّوْمُ" },
+                { chapter_number: 4, verse_number: 1, text_urdu: "يٰٓاَيُّهَا النَّاسُ اتَّقُوْا رَبَّكُمُ الَّذِيْ خَلَقَكُمْ مِّنْ نَّفْسٍ وَّاحِدَةٍ وَّخَلَقَ مِنْهَا زَوْجَهَا وَبَثَّ مِنْهُمَا رِجَالًا كَثِيْرًا وَّنِسَاۗءً ۚ وَاتَّقُوا اللّٰهَ الَّذِيْ تَسَاۗءَلُوْنَ بِهٖ وَالْاَرْحَامَ ۝ اِنَّ اللّٰهَ كَانَ عَلَيْكُمْ رَقِيْبًا" },
+                { chapter_number: 5, verse_number: 1, text_urdu: "يٰٓاَيُّهَا الَّذِيْنَ اٰمَنُوْٓا اَوْفُوْا بِالْعُقُوْدِ ۝ اُحِلَّتْ لَكُمْ بَهِيْمَةُ الْاَنْعَامِ اِلَّا مَا يُتْلٰى عَلَيْكُمْ غَيْرَ مُحِلِّى الصَّيْدِ وَاَنْتُمْ حُرُمٌ ۝ اِنَّ اللّٰهَ يَحْكُمُ مَا يُرِيْدُ" }
+            ]
+        };
 
-        async function loadJSON() {
-            const quranResponse = await fetch('quran.json');
-            quranData = await quranResponse.json();
-            
-            const themesResponse = await fetch('themes.json');
-            themesData = await themesResponse.json();
+        const themesData = {
+            themes: [
+                { name: "بسم اللہ", chapter_number: 1, start_verse: 1, end_verse: 1 },
+                { name: "توحید", chapter_number: 2, start_verse: 1, end_verse: 3 },
+                { name: "ہدایت", chapter_number: 1, start_verse: 6, end_verse: 7 },
+                { name: "اخلاق", chapter_number: 4, start_verse: 1, end_verse: 1 },
+                { name: "عقیدہ", chapter_number: 3, start_verse: 1, end_verse: 2 }
+            ]
+        };
 
+        function loadApp() {
             populateChapters();
             populateThemes();
+            // Show Al-Fatiha by default
+            document.getElementById('chapter').value = 1;
+            showVerses();
         }
 
         function populateChapters() {
@@ -42,14 +119,23 @@
         }
 
         function showVerses() {
-            let chapterNumber = document.getElementById('chapter').value;
+            let chapterNumber = parseInt(document.getElementById('chapter').value);
             let versesDiv = document.getElementById('verses');
             versesDiv.innerHTML = '';
-
-            let verses = quranData.verses.filter(v => v.chapter_number == chapterNumber);
+            
+            let chapterName = quranData.chapters.find(c => c.number === chapterNumber).name;
+            let chapterTitle = document.createElement('h2');
+            chapterTitle.textContent = `سورة ${chapterName}`;
+            versesDiv.appendChild(chapterTitle);
+            
+            let verses = quranData.verses.filter(v => v.chapter_number === chapterNumber);
             verses.forEach(verse => {
                 let p = document.createElement('p');
-                p.textContent = `${verse.verse_number}: ${verse.text_urdu}`;
+                let span = document.createElement('span');
+                span.className = 'verse-number';
+                span.textContent = verse.verse_number;
+                p.appendChild(span);
+                p.innerHTML += ` ${verse.text_urdu}`;
                 versesDiv.appendChild(p);
             });
         }
@@ -59,25 +145,47 @@
             let versesDiv = document.getElementById('verses');
             versesDiv.innerHTML = '';
             
+            let themeTitle = document.createElement('h2');
+            themeTitle.textContent = `موضوع: ${themeName}`;
+            versesDiv.appendChild(themeTitle);
+            
             let theme = themesData.themes.find(t => t.name === themeName);
-            let verses = quranData.verses.filter(v => v.chapter_number == theme.chapter_number && v.verse_number >= theme.start_verse && v.verse_number <= theme.end_verse);
+            let verses = quranData.verses.filter(v => 
+                v.chapter_number === theme.chapter_number && 
+                v.verse_number >= theme.start_verse && 
+                v.verse_number <= theme.end_verse
+            );
             
             verses.forEach(verse => {
                 let p = document.createElement('p');
-                p.textContent = `${verse.chapter_number}:${verse.verse_number}: ${verse.text_urdu}`;
+                let chapterName = quranData.chapters.find(c => c.number === verse.chapter_number).name;
+                
+                let span = document.createElement('span');
+                span.className = 'verse-number';
+                span.textContent = `${chapterName} ${verse.verse_number}:`;
+                p.appendChild(span);
+                
+                p.innerHTML += ` ${verse.text_urdu}`;
                 versesDiv.appendChild(p);
             });
         }
     </script>
 </head>
-<body onload="loadJSON()">
-    <h1>Quran App - Urdu</h1>
-    <label>سورة منتخب کریں:</label>
-    <select id="chapter" onchange="showVerses()"></select>
-    <br><br>
-    <label>موضوع منتخب کریں:</label>
-    <select id="theme" onchange="showThemeVerses()"></select>
-    <br><br>
-    <div id="verses"></div>
+<body onload="loadApp()">
+    <div class="container">
+        <h1>قرآن ایپ - اردو</h1>
+        
+        <div>
+            <label>سورة منتخب کریں:</label>
+            <select id="chapter" onchange="showVerses()"></select>
+        </div>
+        
+        <div>
+            <label>موضوع منتخب کریں:</label>
+            <select id="theme" onchange="showThemeVerses()"></select>
+        </div>
+        
+        <div id="verses"></div>
+    </div>
 </body>
 </html>

@@ -49,73 +49,128 @@
             color: #43a047;
             margin-left: 8px;
         }
+        .loading {
+            text-align: center;
+            margin: 50px 0;
+            font-size: 18px;
+            color: #666;
+        }
+        .error {
+            color: #e53935;
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid #ffcdd2;
+            background-color: #ffebee;
+            border-radius: 4px;
+        }
     </style>
     <script>
-        // Sample data included directly to make the app work without external files
-        const quranData = {
-            chapters: [
-                { number: 1, name: "الفاتحة" },
-                { number: 2, name: "البقرة" },
-                { number: 3, name: "آل عمران" },
-                { number: 4, name: "النساء" },
-                { number: 5, name: "المائدة" }
-            ],
-            verses: [
-                { chapter_number: 1, verse_number: 1, text_urdu: "بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ" },
-                { chapter_number: 1, verse_number: 2, text_urdu: "اَلْحَمْدُ لِلّٰهِ رَبِّ الْعٰلَمِيْنَۙ" },
-                { chapter_number: 1, verse_number: 3, text_urdu: "الرَّحْمٰنِ الرَّحِيْمِۙ" },
-                { chapter_number: 1, verse_number: 4, text_urdu: "مٰلِكِ يَوْمِ الدِّيْنِؕ" },
-                { chapter_number: 1, verse_number: 5, text_urdu: "اِيَّاكَ نَعْبُدُ وَاِيَّاكَ نَسْتَعِيْنُؕ" },
-                { chapter_number: 1, verse_number: 6, text_urdu: "اِهْدِنَا الصِّرَاطَ الْمُسْتَقِيْمَۙ" },
-                { chapter_number: 1, verse_number: 7, text_urdu: "صِرَاطَ الَّذِيْنَ اَنْعَمْتَ عَلَيْهِمْ ۙ غَيْرِ الْمَغْضُوْبِ عَلَيْهِمْ وَلَا الضَّآلِّيْنَ" },
-                { chapter_number: 2, verse_number: 1, text_urdu: "الٓمّٓ" },
-                { chapter_number: 2, verse_number: 2, text_urdu: "ذٰلِكَ الْكِتٰبُ لَا رَيْبَ ۚ فِيْهِ ۚ هُدًى لِّلْمُتَّقِيْنَۙ" },
-                { chapter_number: 2, verse_number: 3, text_urdu: "الَّذِيْنَ يُؤْمِنُوْنَ بِالْغَيْبِ وَيُقِيْمُوْنَ الصَّلٰوةَ وَمِمَّا رَزَقْنٰهُمْ يُنْفِقُوْنَۙ" },
-                { chapter_number: 3, verse_number: 1, text_urdu: "الٓمّٓ" },
-                { chapter_number: 3, verse_number: 2, text_urdu: "اَللّٰهُ لَآ اِلٰهَ اِلَّا هُوَۚ اَلْحَيُّ الْقَيُّوْمُ" },
-                { chapter_number: 4, verse_number: 1, text_urdu: "يٰٓاَيُّهَا النَّاسُ اتَّقُوْا رَبَّكُمُ الَّذِيْ خَلَقَكُمْ مِّنْ نَّفْسٍ وَّاحِدَةٍ وَّخَلَقَ مِنْهَا زَوْجَهَا وَبَثَّ مِنْهُمَا رِجَالًا كَثِيْرًا وَّنِسَاۗءً ۚ وَاتَّقُوا اللّٰهَ الَّذِيْ تَسَاۗءَلُوْنَ بِهٖ وَالْاَرْحَامَ ۝ اِنَّ اللّٰهَ كَانَ عَلَيْكُمْ رَقِيْبًا" },
-                { chapter_number: 5, verse_number: 1, text_urdu: "يٰٓاَيُّهَا الَّذِيْنَ اٰمَنُوْٓا اَوْفُوْا بِالْعُقُوْدِ ۝ اُحِلَّتْ لَكُمْ بَهِيْمَةُ الْاَنْعَامِ اِلَّا مَا يُتْلٰى عَلَيْكُمْ غَيْرَ مُحِلِّى الصَّيْدِ وَاَنْتُمْ حُرُمٌ ۝ اِنَّ اللّٰهَ يَحْكُمُ مَا يُرِيْدُ" }
-            ]
-        };
+        // Global variables to store our data
+        let quranData = { chapters: [], verses: [] };
+        let themesData = { themes: [] };
+        let isLoading = true;
+        let errorMessage = "";
 
-        const themesData = {
-            themes: [
-                { name: "بسم اللہ", chapter_number: 1, start_verse: 1, end_verse: 1 },
-                { name: "توحید", chapter_number: 2, start_verse: 1, end_verse: 3 },
-                { name: "ہدایت", chapter_number: 1, start_verse: 6, end_verse: 7 },
-                { name: "اخلاق", chapter_number: 4, start_verse: 1, end_verse: 1 },
-                { name: "عقیدہ", chapter_number: 3, start_verse: 1, end_verse: 2 }
-            ]
-        };
+        // Function to load JSON data
+        async function loadJSON() {
+            try {
+                // Display loading message
+                document.getElementById('app-container').innerHTML = '<div class="loading">جاری ہے... براۓ مہربانی انتظار کریں</div>';
+                
+                // Fetch Quran data
+                const quranResponse = await fetch('quran.json');
+                if (!quranResponse.ok) {
+                    throw new Error('quran.json فائل لوڈ نہیں ہوسکی');
+                }
+                quranData = await quranResponse.json();
+                
+                // Fetch themes data
+                const themesResponse = await fetch('themes.json');
+                if (!themesResponse.ok) {
+                    throw new Error('themes.json فائل لوڈ نہیں ہوسکی');
+                }
+                themesData = await themesResponse.json();
+                
+                // Data loaded successfully
+                isLoading = false;
+                
+                // Initialize the app
+                initializeApp();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                errorMessage = error.message;
+                isLoading = false;
+                showError();
+            }
+        }
 
-        function loadApp() {
+        // Function to show error message
+        function showError() {
+            document.getElementById('app-container').innerHTML = `
+                <div class="error">
+                    <p>ایرر: ${errorMessage}</p>
+                    <p>براہ کرم یقینی بنائیں کہ quran.json اور themes.json فائلیں موجود ہیں۔</p>
+                </div>
+            `;
+        }
+
+        // Function to initialize the app
+        function initializeApp() {
+            // Render the app UI
+            document.getElementById('app-container').innerHTML = `
+                <h1>قرآن ایپ - اردو</h1>
+                
+                <div>
+                    <label>سورة منتخب کریں:</label>
+                    <select id="chapter" onchange="showVerses()"></select>
+                </div>
+                
+                <div>
+                    <label>موضوع منتخب کریں:</label>
+                    <select id="theme" onchange="showThemeVerses()"></select>
+                </div>
+                
+                <div id="verses"></div>
+            `;
+            
+            // Populate dropdowns
             populateChapters();
             populateThemes();
-            // Show Al-Fatiha by default
-            document.getElementById('chapter').value = 1;
-            showVerses();
+            
+            // Show Al-Fatiha by default (if available)
+            if (quranData.chapters && quranData.chapters.length > 0) {
+                document.getElementById('chapter').value = quranData.chapters[0].number;
+                showVerses();
+            }
         }
 
         function populateChapters() {
             let chapterSelect = document.getElementById('chapter');
             chapterSelect.innerHTML = '';
-            quranData.chapters.forEach(chapter => {
-                let option = document.createElement('option');
-                option.value = chapter.number;
-                option.textContent = `سورة ${chapter.name}`;
-                chapterSelect.appendChild(option);
-            });
+            
+            if (quranData.chapters && quranData.chapters.length > 0) {
+                quranData.chapters.forEach(chapter => {
+                    let option = document.createElement('option');
+                    option.value = chapter.number;
+                    option.textContent = `سورة ${chapter.name}`;
+                    chapterSelect.appendChild(option);
+                });
+            }
         }
 
         function populateThemes() {
             let themeSelect = document.getElementById('theme');
             themeSelect.innerHTML = '';
-            themesData.themes.forEach(theme => {
-                let option = document.createElement('option');
-                option.value = theme.name;
-                option.textContent = theme.name;
-                themeSelect.appendChild(option);
-            });
+            
+            if (themesData.themes && themesData.themes.length > 0) {
+                themesData.themes.forEach(theme => {
+                    let option = document.createElement('option');
+                    option.value = theme.name;
+                    option.textContent = theme.name;
+                    themeSelect.appendChild(option);
+                });
+            }
         }
 
         function showVerses() {
@@ -123,12 +178,24 @@
             let versesDiv = document.getElementById('verses');
             versesDiv.innerHTML = '';
             
-            let chapterName = quranData.chapters.find(c => c.number === chapterNumber).name;
+            // Find chapter name
+            let chapter = quranData.chapters.find(c => c.number === chapterNumber);
+            if (!chapter) return;
+            
+            // Add chapter title
             let chapterTitle = document.createElement('h2');
-            chapterTitle.textContent = `سورة ${chapterName}`;
+            chapterTitle.textContent = `سورة ${chapter.name}`;
             versesDiv.appendChild(chapterTitle);
             
+            // Filter verses for this chapter
             let verses = quranData.verses.filter(v => v.chapter_number === chapterNumber);
+            
+            // Display verses
+            if (verses.length === 0) {
+                versesDiv.innerHTML += '<p>اس سورة کے لیے کوئی آیات نہیں ہیں</p>';
+                return;
+            }
+            
             verses.forEach(verse => {
                 let p = document.createElement('p');
                 let span = document.createElement('span');
@@ -145,20 +212,34 @@
             let versesDiv = document.getElementById('verses');
             versesDiv.innerHTML = '';
             
+            // Find the selected theme
+            let theme = themesData.themes.find(t => t.name === themeName);
+            if (!theme) return;
+            
+            // Add theme title
             let themeTitle = document.createElement('h2');
             themeTitle.textContent = `موضوع: ${themeName}`;
             versesDiv.appendChild(themeTitle);
             
-            let theme = themesData.themes.find(t => t.name === themeName);
+            // Filter verses for this theme
             let verses = quranData.verses.filter(v => 
                 v.chapter_number === theme.chapter_number && 
                 v.verse_number >= theme.start_verse && 
                 v.verse_number <= theme.end_verse
             );
             
+            // Display verses
+            if (verses.length === 0) {
+                versesDiv.innerHTML += '<p>اس موضوع کے لیے کوئی آیات نہیں ہیں</p>';
+                return;
+            }
+            
             verses.forEach(verse => {
                 let p = document.createElement('p');
-                let chapterName = quranData.chapters.find(c => c.number === verse.chapter_number).name;
+                
+                // Find chapter name for reference
+                let chapter = quranData.chapters.find(c => c.number === verse.chapter_number);
+                let chapterName = chapter ? chapter.name : verse.chapter_number;
                 
                 let span = document.createElement('span');
                 span.className = 'verse-number';
@@ -169,23 +250,14 @@
                 versesDiv.appendChild(p);
             });
         }
+
+        // Start loading when page loads
+        window.onload = loadJSON;
     </script>
 </head>
-<body onload="loadApp()">
-    <div class="container">
-        <h1>قرآن ایپ - اردو</h1>
-        
-        <div>
-            <label>سورة منتخب کریں:</label>
-            <select id="chapter" onchange="showVerses()"></select>
-        </div>
-        
-        <div>
-            <label>موضوع منتخب کریں:</label>
-            <select id="theme" onchange="showThemeVerses()"></select>
-        </div>
-        
-        <div id="verses"></div>
+<body>
+    <div id="app-container" class="container">
+        <div class="loading">جاری ہے... براۓ مہربانی انتظار کریں</div>
     </div>
 </body>
 </html>

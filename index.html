@@ -1,22 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ur" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quran Viewer</title>
+    <title>قرآن مبارک</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Noto Nastaliq Urdu', serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            line-height: 1.6;
+            line-height: 2.2;
+            direction: rtl;
+            text-align: right;
         }
         .verse {
             margin: 20px 0;
             padding: 15px;
             background: #f5f5f5;
             border-radius: 8px;
+            page-break-inside: avoid;
         }
         .theme {
             margin: 40px 0;
@@ -26,15 +30,26 @@
         }
         .theme h3 {
             color: #e67e22;
+            margin-bottom: 15px;
         }
         .error {
             color: red;
             font-weight: bold;
         }
+        .verse-number {
+            float: left;
+            color: #2c3e50;
+            margin-left: 15px;
+            font-size: 1.1em;
+        }
+        .urdu-text {
+            clear: both;
+            margin: 5px 0;
+        }
     </style>
 </head>
 <body>
-    <h1>Quran Viewer</h1>
+    <h1>قرآن مجید</h1>
     
     <div id="quran-container"></div>
     <div id="themes-container"></div>
@@ -48,11 +63,11 @@
                 const response = await fetch('Quran.json');
                 const data = await response.json();
                 quranData = data['Verses English'] || [];
-                console.log('Loaded Quran data:', quranData.length, 'verses');
+                console.log('قرآن کے آیات لوڈ ہوگئے:', quranData.length);
                 return quranData;
             } catch (error) {
-                showError('Failed to load Quran');
-                console.error('Quran load error:', error);
+                showError('قرآن لوڈ نہیں ہوسکا');
+                console.error('قرآن لوڈنگ میں خرابی:', error);
                 return [];
             }
         }
@@ -62,26 +77,21 @@
                 const response = await fetch('Themes.json');
                 const data = await response.json();
                 const themes = data['Themes of Quran'] || [];
-                console.log('Loaded Themes data:', themes.length, 'themes');
-                
-                if (!Array.isArray(themes)) {
-                    throw new Error('Themes data is not an array');
-                }
-
+                console.log('میزاجات لوڈ ہوگئے:', themes.length);
                 return themes;
             } catch (error) {
-                showError('Failed to load Themes');
-                console.error('Themes load error:', error);
+                showError('میزاجات لوڈ نہیں ہوسکے');
+                console.error('میزاجات لوڈنگ میں خرابی:', error);
                 return [];
             }
         }
 
         function displayThemes(themes) {
             const container = document.getElementById('themes-container');
-            container.innerHTML = '<h2>Themes of the Quran</h2>';
+            container.innerHTML = '<h2>قرآن کے میزاجات</h2>';
 
             if (!themes.length) {
-                container.innerHTML += '<p>No themes found</p>';
+                container.innerHTML += '<p>کوئی میزاج نہیں ملا</p>';
                 return;
             }
 
@@ -95,9 +105,8 @@
                 const themeDiv = document.createElement('div');
                 themeDiv.className = 'theme';
                 themeDiv.innerHTML = `
-                    <h3>${theme.theme_name_english || 'Unnamed Theme'}</h3>
-                    <h4>${theme.theme_name_Urdu || ''}</h4>
-                    <p>Chapter ${theme.chapter_number}, Verses ${theme.start_verse}-${theme.end_verse}</p>
+                    <h3>${theme.theme_name_Urdu || 'بی نام میزاج'}</h3>
+                    <p>سورۃ ${theme.chapter_number} کی آیات ${theme.start_verse}-${theme.end_verse}</p>
                 `;
 
                 versesInRange.forEach(verse => {
@@ -105,8 +114,7 @@
                     verseDiv.className = 'verse';
                     verseDiv.innerHTML = `
                         <div class="verse-number">${verse.verse_number}</div>
-                        <div>${verse.text_english}</div>
-                        <div style="direction: rtl; font-family: 'Urdu Naskh', serif;">${verse.text_urdu}</div>
+                        <div class="urdu-text">${verse.text_urdu}</div>
                     `;
                     themeDiv.appendChild(verseDiv);
                 });

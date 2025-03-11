@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quran App - Urdu</title>
+    <title>قرآن ایپ - اردو</title>
     <style>
         body {
             font-family: 'Amiri', 'Scheherazade New', 'Traditional Arabic', Arial, sans-serif;
@@ -66,192 +66,130 @@
         }
     </style>
     <script>
-        // Global variables to store our data
-        let quranData = { chapters: [], verses: [] };
-        let themesData = { themes: [] };
+        let quranData = { Chapters: [], "Verses Urdu": [] };
+        let themesData = { "Themes of Quran": [] };
         let isLoading = true;
         let errorMessage = "";
 
-        // Function to load JSON data
         async function loadJSON() {
             try {
-                // Display loading message
                 document.getElementById('app-container').innerHTML = '<div class="loading">جاری ہے... براۓ مہربانی انتظار کریں</div>';
                 
-                // Fetch Quran data
+                // Load Quran data
                 const quranResponse = await fetch('quran.json');
-                if (!quranResponse.ok) {
-                    throw new Error('quran.json فائل لوڈ نہیں ہوسکی');
-                }
-                quranData = await quranResponse.json();
+                if (!quranResponse.ok) throw new Error('quran.json لوڈ نہیں ہوسکا');
+                const quran = await quranResponse.json();
+                quranData.Chapters = quran.Chapters || [];
+                quranData["Verses Urdu"] = quran["Verses Urdu"] || [];
                 
-                // Fetch themes data
+                // Load themes data
                 const themesResponse = await fetch('themes.json');
-                if (!themesResponse.ok) {
-                    throw new Error('themes.json فائل لوڈ نہیں ہوسکی');
-                }
-                themesData = await themesResponse.json();
+                if (!themesResponse.ok) throw new Error('themes.json لوڈ نہیں ہوسکا');
+                const themes = await themesResponse.json();
+                themesData["Themes of Quran"] = themes["Themes of Quran"] || [];
                 
-                // Data loaded successfully
                 isLoading = false;
-                
-                // Initialize the app
                 initializeApp();
             } catch (error) {
-                console.error('Error loading data:', error);
+                console.error('Error:', error);
                 errorMessage = error.message;
                 isLoading = false;
                 showError();
             }
         }
 
-        // Function to show error message
         function showError() {
             document.getElementById('app-container').innerHTML = `
                 <div class="error">
                     <p>ایرر: ${errorMessage}</p>
-                    <p>براہ کرم یقینی بنائیں کہ quran.json اور themes.json فائلیں موجود ہیں۔</p>
+                    <p>براہ کرم چیک کریں کہ JSON فائلیں موجود ہیں اور درست ہیں</p>
                 </div>
             `;
         }
 
-        // Function to initialize the app
         function initializeApp() {
-            // Render the app UI
             document.getElementById('app-container').innerHTML = `
                 <h1>قرآن ایپ - اردو</h1>
-                
                 <div>
                     <label>سورة منتخب کریں:</label>
                     <select id="chapter" onchange="showVerses()"></select>
                 </div>
-                
                 <div>
                     <label>موضوع منتخب کریں:</label>
                     <select id="theme" onchange="showThemeVerses()"></select>
                 </div>
-                
                 <div id="verses"></div>
             `;
-            
-            // Populate dropdowns
+
             populateChapters();
             populateThemes();
-            
-            // Show Al-Fatiha by default (if available)
-            if (quranData.chapters && quranData.chapters.length > 0) {
-                document.getElementById('chapter').value = quranData.chapters[0].number;
+            if (quranData.Chapters.length > 0) {
+                document.getElementById('chapter').value = quranData.Chapters[0].number;
                 showVerses();
             }
         }
 
         function populateChapters() {
-            let chapterSelect = document.getElementById('chapter');
-            chapterSelect.innerHTML = '';
-            
-            if (quranData.chapters && quranData.chapters.length > 0) {
-                quranData.chapters.forEach(chapter => {
-                    let option = document.createElement('option');
-                    option.value = chapter.number;
-                    option.textContent = `سورة ${chapter.name}`;
-                    chapterSelect.appendChild(option);
-                });
-            }
+            const chapterSelect = document.getElementById('chapter');
+            chapterSelect.innerHTML = quranData.Chapters.map(chapter => `
+                <option value="${chapter.number}">سورة ${chapter.name}</option>
+            `).join('');
         }
 
         function populateThemes() {
-            let themeSelect = document.getElementById('theme');
-            themeSelect.innerHTML = '';
-            
-            if (themesData.themes && themesData.themes.length > 0) {
-                themesData.themes.forEach(theme => {
-                    let option = document.createElement('option');
-                    option.value = theme.name;
-                    option.textContent = theme.name;
-                    themeSelect.appendChild(option);
-                });
-            }
+            const themeSelect = document.getElementById('theme');
+            themeSelect.innerHTML = themesData["Themes of Quran"].map(theme => `
+                <option value="${theme.theme_name_Urdu}">${theme.theme_name_Urdu}</option>
+            `).join('');
         }
 
         function showVerses() {
-            let chapterNumber = parseInt(document.getElementById('chapter').value);
-            let versesDiv = document.getElementById('verses');
-            versesDiv.innerHTML = '';
+            const chapterNumber = parseInt(document.getElementById('chapter').value);
+            const versesDiv = document.getElementById('verses');
+            const chapter = quranData.Chapters.find(c => c.number === chapterNumber);
             
-            // Find chapter name
-            let chapter = quranData.chapters.find(c => c.number === chapterNumber);
-            if (!chapter) return;
+            versesDiv.innerHTML = `<h2>سورة ${chapter.name}</h2>`;
             
-            // Add chapter title
-            let chapterTitle = document.createElement('h2');
-            chapterTitle.textContent = `سورة ${chapter.name}`;
-            versesDiv.appendChild(chapterTitle);
-            
-            // Filter verses for this chapter
-            let verses = quranData.verses.filter(v => v.chapter_number === chapterNumber);
-            
-            // Display verses
+            const verses = quranData["Verses Urdu"].filter(v => v.chapter_number === chapterNumber);
             if (verses.length === 0) {
-                versesDiv.innerHTML += '<p>اس سورة کے لیے کوئی آیات نہیں ہیں</p>';
+                versesDiv.innerHTML += '<p>کوئی آیات دستیاب نہیں</p>';
                 return;
             }
-            
-            verses.forEach(verse => {
-                let p = document.createElement('p');
-                let span = document.createElement('span');
-                span.className = 'verse-number';
-                span.textContent = verse.verse_number;
-                p.appendChild(span);
-                p.innerHTML += ` ${verse.text_urdu}`;
-                versesDiv.appendChild(p);
-            });
+
+            versesDiv.innerHTML += verses.map(verse => `
+                <p>
+                    <span class="verse-number">${verse.verse_number}</span>
+                    ${verse.text_urdu}
+                </p>
+            `).join('');
         }
 
         function showThemeVerses() {
-            let themeName = document.getElementById('theme').value;
-            let versesDiv = document.getElementById('verses');
-            versesDiv.innerHTML = '';
+            const themeName = document.getElementById('theme').value;
+            const versesDiv = document.getElementById('verses');
+            const theme = themesData["Themes of Quran"].find(t => t.theme_name_Urdu === themeName);
             
-            // Find the selected theme
-            let theme = themesData.themes.find(t => t.name === themeName);
-            if (!theme) return;
+            versesDiv.innerHTML = `<h2>موضوع: ${themeName}</h2>`;
             
-            // Add theme title
-            let themeTitle = document.createElement('h2');
-            themeTitle.textContent = `موضوع: ${themeName}`;
-            versesDiv.appendChild(themeTitle);
-            
-            // Filter verses for this theme
-            let verses = quranData.verses.filter(v => 
-                v.chapter_number === theme.chapter_number && 
-                v.verse_number >= theme.start_verse && 
+            const verses = quranData["Verses Urdu"].filter(v => 
+                v.chapter_number === theme.chapter_number &&
+                v.verse_number >= theme.start_verse &&
                 v.verse_number <= theme.end_verse
             );
-            
-            // Display verses
+
             if (verses.length === 0) {
-                versesDiv.innerHTML += '<p>اس موضوع کے لیے کوئی آیات نہیں ہیں</p>';
+                versesDiv.innerHTML += '<p>کوئی آیات دستیاب نہیں</p>';
                 return;
             }
-            
-            verses.forEach(verse => {
-                let p = document.createElement('p');
-                
-                // Find chapter name for reference
-                let chapter = quranData.chapters.find(c => c.number === verse.chapter_number);
-                let chapterName = chapter ? chapter.name : verse.chapter_number;
-                
-                let span = document.createElement('span');
-                span.className = 'verse-number';
-                span.textContent = `${chapterName} ${verse.verse_number}:`;
-                p.appendChild(span);
-                
-                p.innerHTML += ` ${verse.text_urdu}`;
-                versesDiv.appendChild(p);
-            });
+
+            versesDiv.innerHTML += verses.map(verse => `
+                <p>
+                    <span class="verse-number">${verse.chapter_number}:${verse.verse_number}</span>
+                    ${verse.text_urdu}
+                </p>
+            `).join('');
         }
 
-        // Start loading when page loads
         window.onload = loadJSON;
     </script>
 </head>

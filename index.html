@@ -42,10 +42,10 @@
     <div id="error-message" class="error"></div>
 
     <script>
-        // Fetch Quran data
+        // Fetch Quran data from local file
         async function loadQuran() {
             try {
-                const response = await fetch('https://github.com/dfordev1/ClearQuranUrdu/raw/refs/heads/main/Quran.json');
+                const response = await fetch('Quran.json'); // Case-sensitive filename
                 const data = await response.json();
                 
                 const container = document.getElementById('quran-container');
@@ -66,20 +66,21 @@
             }
         }
 
-        // Fetch Themes data
+        // Fetch Themes data from local file
         async function loadThemes() {
             try {
-                const response = await fetch('https://github.com/dfordev1/ClearQuranUrdu/raw/refs/heads/main/themes.json');
+                const response = await fetch('Themes.json'); // Case-sensitive filename
                 const data = await response.json();
                 
                 const container = document.getElementById('themes-container');
                 
-                data['Themes English'].forEach(theme => {
+                data['Verses English'].forEach(theme => { // Match your JSON structure
                     const themeDiv = document.createElement('div');
                     themeDiv.className = 'theme';
                     themeDiv.innerHTML = `
-                        <h3>${theme.theme_name}</h3>
-                        <p>${theme.theme_description}</p>
+                        <h3>Chapter ${theme.chapter_number}:${theme.verse_number}</h3>
+                        <p>${theme.text_english}</p>
+                        <p style="direction: rtl; font-family: 'Urdu Naskh', serif;">${theme.text_urdu}</p>
                     `;
                     container.appendChild(themeDiv);
                 });

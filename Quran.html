@@ -1,1 +1,846 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قرآن مبارک</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #ecf0f1;
+            --text-color: #333;
+            --background-color: #fff;
+            --font-size-base: 120%;
+        }
+        body {
+            font-family: 'Noto Nastaliq Urdu', serif;
+            margin: 0;
+            padding: 0;
+            background: var(--background-color);
+            color: var(--text-color);
+            transition: background 0.3s, color 0.3s;
+        }
+        body.dark-mode {
+            --primary-color: #34495e;
+            --secondary-color: #7f8c8d;
+            --text-color: #ecf0f1;
+            --background-color: #1a2525;
+        }
+        header {
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .main-title {
+            margin: 0;
+            font-size: 1.5em;
+        }
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100%;
+            background: var(--background-color);
+            box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+            transition: left 0.3s ease;
+            z-index: 1000;
+        }
+        .settings-panel.open {
+            left: 0;
+        }
+        .font-size-controls, .mode-toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+        }
+        .mode-toggle {
+            display: flex;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .mode-toggle i {
+            font-size: 1.5em;
+        }
+        .dark-mode .fa-sun {
+            display: none;
+        }
+        .dark-mode .fa-moon {
+            display: block;
+        }
+        .search-container {
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        .search-wrapper {
+            position: relative;
+            width: 60%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .search-input {
+            padding: 10px 30px 10px 10px;
+            width: 100%;
+            border-radius: 5px;
+            border: 1px solid var(--primary-color);
+        }
+        .search-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-color);
+        }
+        .search-button {
+            padding: 10px;
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px 0;
+            background: var(--primary-color);
+        }
+        .tab {
+            padding: 10px 20px;
+            background: #3d566e;
+            color: var(--secondary-color);
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+        .tab:hover {
+            background: #4a6a8a;
+            transform: translateY(-2px);
+        }
+        .tab.active {
+            background: var(--background-color);
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .controls.bottom {
+            margin-top: 20px;
+            margin-bottom: 0;
+        }
+        .chapter-select, #goto-input {
+            padding: 8px;
+            border: 1px solid var(--primary-color);
+            border-radius: 5px;
+            font-family: 'Noto Nastaliq Urdu', serif;
+        }
+        #goto-input {
+            width: 150px;
+        }
+        .goto-container {
+            display: flex;
+            gap: 5px;
+        }
+        .pagination {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .verse {
+            background: #f9f9f9;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            display: grid;
+            grid-template-columns: 40px 40px 1fr 100px;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .verse:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+        }
+        .urdu-text {
+            font-size: 1.2em;
+            line-height: 2.2;
+        }
+        .english-text {
+            font-size: 1em;
+            line-height: 1.8;
+        }
+        .verse-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .verse-actions button {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+        }
+        .spinner {
+            border: 4px solid var(--secondary-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 10px;
+            margin: 10px 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .bookmarks-list .verse {
+            background: #dfe6e9;
+        }
+        .dark-mode .verse, .dark-mode .bookmarks-list .verse {
+            background: #2d3436;
+        }
+        .theme-filters {
+            display: flex;
+            gap: 10px;
+        }
+        .page-button {
+            padding: 8px 12px;
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .page-button:hover {
+            background: #4a6a8a;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 class="main-title">قرآن مجید</h1>
+        <div>
+            <button id="settings-toggle" class="page-button">
+                <i class="fas fa-cog"></i> ترتیبات
+            </button>
+        </div>
+    </header>
 
+    <div id="settings-panel" class="settings-panel">
+        <h3>ترتیبات</h3>
+        <div class="font-size-controls">
+            <span>فونٹ سائز:</span>
+            <button id="decrease-font" class="font-btn">-</button>
+            <button id="increase-font" class="font-btn">+</button>
+        </div>
+        <div class="mode-toggle-container">
+            <span>موڈ:</span>
+            <div id="mode-toggle" class="mode-toggle">
+                <i class="fas fa-sun"></i>
+                <i class="fas fa-moon" style="display: none;"></i>
+            </div>
+        </div>
+        <div style="margin-top: 15px;">
+            <span>زبان:</span>
+            <select id="language-toggle">
+                <option value="urdu">اردو</option>
+                <option value="english">English</option>
+                <option value="both">دونوں</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="error-message" class="error" style="display: none;"></div>
+
+    <div class="search-container">
+        <div class="search-wrapper">
+            <input type="text" id="search-input" class="search-input" placeholder="قرآن میں تلاش کریں...">
+            <i class="fas fa-search search-icon"></i>
+        </div>
+        <button id="search-button" class="search-button">تلاش کریں</button>
+    </div>
+
+    <div class="tab-container">
+        <div class="tab" data-tab="quran">قرآن</div>
+        <div class="tab active" data-tab="themes">میزاجات</div>
+        <div class="tab" data-tab="bookmarks">نشانیاں</div>
+    </div>
+
+    <div id="quran-tab" class="tab-content">
+        <div class="controls">
+            <div>
+                <select id="chapter-select" class="chapter-select">
+                    <option value="">سورۃ منتخب کریں</option>
+                </select>
+            </div>
+            <div class="goto-container">
+                <input type="text" id="goto-input" placeholder="سورۃ:آیت (مثال: 2:255)" />
+                <button id="goto-button" class="page-button">جائیں</button>
+            </div>
+            <div class="pagination">
+                <button id="prev-page" class="page-button">
+                    <i class="fas fa-chevron-right"></i> پچھلا
+                </button>
+                <span id="page-info">صفحہ 1</span>
+                <button id="next-page" class="page-button">
+                    اگلا <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+        </div>
+        <div id="quran-container"></div>
+        <div id="quran-loading" class="loading">
+            <div class="spinner"></div>
+        </div>
+        <div class="controls bottom">
+            <div></div>
+            <div class="pagination">
+                <button id="prev-page-bottom" class="page-button">
+                    <i class="fas fa-chevron-right"></i> پچھلا
+                </button>
+                <span id="page-info-bottom">صفحہ 1</span>
+                <button id="next-page-bottom" class="page-button">
+                    اگلا <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="themes-tab" class="tab-content active">
+        <div class="controls">
+            <div class="theme-filters">
+                <select id="theme-surah-select" class="chapter-select">
+                    <option value="">سورۃ منتخب کریں</option>
+                </select>
+                <select id="theme-select" class="chapter-select">
+                    <option value="">میزاج منتخب کریں</option>
+                </select>
+            </div>
+            <div class="pagination">
+                <button id="prev-theme-page" class="page-button">
+                    <i class="fas fa-chevron-right"></i> پچھلا
+                </button>
+                <span id="theme-page-info">صفحہ 1</span>
+                <button id="next-theme-page" class="page-button">
+                    اگلا <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+        </div>
+        <div id="themes-container"></div>
+        <div id="themes-loading" class="loading">
+            <div class="spinner"></div>
+        </div>
+        <div class="controls bottom">
+            <div></div>
+            <div class="pagination">
+                <button id="prev-theme-page-bottom" class="page-button">
+                    <i class="fas fa-chevron-right"></i> پچھلا
+                </button>
+                <span id="theme-page-info-bottom">صفحہ 1</span>
+                <button id="next-theme-page-bottom" class="page-button">
+                    اگلا <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="bookmarks-tab" class="tab-content">
+        <h2>آپ کی نشانیاں</h2>
+        <div id="bookmarks-container" class="bookmarks-list"></div>
+    </div>
+
+    <script>
+        let quranData = [];
+        let currentPage = 1;
+        let versesPerPage = 10;
+        let currentChapter = '';
+        let bookmarks = JSON.parse(localStorage.getItem('quran-bookmarks') || '[]');
+        let fontSize = parseInt(localStorage.getItem('quran-font-size') || '120');
+        let darkMode = localStorage.getItem('quran-dark-mode') === 'true';
+        let themesData = [];
+        let currentThemePage = 1;
+        let themesPerPage = 5;
+        let language = localStorage.getItem('quran-language') || 'urdu';
+
+        const surahNames = {
+            surah_names = {
+    1: "الفاتحة", 2: "البقرة", 3: "آل عمران", 4: "النساء", 5: "المائدة",
+    6: "الأنعام", 7: "الأعراف", 8: "الأنفال", 9: "التوبة", 10: "يونس",
+    11: "هود", 12: "يوسف", 13: "الرعد", 14: "إبراهيم", 15: "الحجر",
+    16: "النحل", 17: "الإسراء", 18: "الكهف", 19: "مريم", 20: "طه",
+    21: "الأنبياء", 22: "الحج", 23: "المؤمنون", 24: "النور", 25: "الفرقان",
+    26: "الشعراء", 27: "النمل", 28: "القصص", 29: "العنكبوت", 30: "الروم",
+    31: "لقمان", 32: "السجدة", 33: "الأحزاب", 34: "سبإ", 35: "فاطر",
+    36: "يس", 37: "الصافات", 38: "ص", 39: "الزمر", 40: "غافر",
+    41: "فصلت", 42: "الشورى", 43: "الزخرف", 44: "الدخان", 45: "الجاثية",
+    46: "الأحقاف", 47: "محمد", 48: "الفتح", 49: "الحجرات", 50: "ق",
+    51: "الذاريات", 52: "الطور", 53: "النجم", 54: "القمر", 55: "الرحمن",
+    56: "الواقعة", 57: "الحديد", 58: "المجادلة", 59: "الحشر", 60: "الممتحنة",
+    61: "الصف", 62: "الجمعة", 63: "المنافقون", 64: "التغابن", 65: "الطلاق",
+    66: "التحريم", 67: "الملك", 68: "القلم", 69: "الحاقة", 70: "المعارج",
+    71: "نوح", 72: "الجن", 73: "المزمل", 74: "المدثر", 75: "القيامة",
+    76: "الإنسان", 77: "المرسلات", 78: "النبأ", 79: "النازعات", 80: "عبس",
+    81: "التكوير", 82: "الإنفطار", 83: "المطففين", 84: "الإنشقاق", 85: "البروج",
+    86: "الطارق", 87: "الأعلى", 88: "الغاشية", 89: "الفجر", 90: "البلد",
+    91: "الشمس", 92: "الليل", 93: "الضحى", 94: "الشرح", 95: "التين",
+    96: "العلق", 97: "القدر", 98: "البينة", 99: "الزلزلة", 100: "العاديات",
+    101: "القارعة", 102: "التكاثر", 103: "العصر", 104: "الهمزة", 105: "الفيل",
+    106: "قريش", 107: "الماعون", 108: "الكوثر", 109: "الكافرون", 110: "النصر",
+    111: "المسد", 112: "الإخلاص", 113: "الفلق", 114: "الناس"
+}
+
+            // Add remaining surah names as needed
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.documentElement.style.setProperty('--font-size-base', `${fontSize}%`);
+            if (darkMode) document.body.classList.add('dark-mode');
+            document.getElementById('language-toggle').value = language;
+            setupEventListeners();
+            init();
+        });
+
+        function setupEventListeners() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+                    if (tab.dataset.tab === 'quran') displayQuran();
+                    else if (tab.dataset.tab === 'themes') displayThemes();
+                    else if (tab.dataset.tab === 'bookmarks') displayBookmarks();
+                });
+            });
+
+            document.getElementById('prev-page').addEventListener('click', () => {
+                if (currentPage > 1) { currentPage--; displayQuran(); }
+            });
+            document.getElementById('next-page').addEventListener('click', () => {
+                const totalPages = Math.ceil(filteredVerses().length / versesPerPage);
+                if (currentPage < totalPages) { currentPage++; displayQuran(); }
+            });
+            document.getElementById('prev-page-bottom').addEventListener('click', () => {
+                if (currentPage > 1) { currentPage--; displayQuran(); }
+            });
+            document.getElementById('next-page-bottom').addEventListener('click', () => {
+                const totalPages = Math.ceil(filteredVerses().length / versesPerPage);
+                if (currentPage < totalPages) { currentPage++; displayQuran(); }
+            });
+
+            document.getElementById('chapter-select').addEventListener('change', (e) => {
+                currentChapter = e.target.value;
+                currentPage = 1;
+                displayQuran();
+            });
+
+            document.getElementById('search-button').addEventListener('click', performSearch);
+            document.getElementById('search-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') performSearch();
+            });
+
+            document.getElementById('settings-toggle').addEventListener('click', () => {
+                document.getElementById('settings-panel').classList.toggle('open');
+            });
+
+            document.getElementById('increase-font').addEventListener('click', () => {
+                fontSize = Math.min(fontSize + 10, 200);
+                updateFontSize();
+            });
+            document.getElementById('decrease-font').addEventListener('click', () => {
+                fontSize = Math.max(fontSize - 10, 80);
+                updateFontSize();
+            });
+
+            document.getElementById('mode-toggle').addEventListener('click', () => {
+                darkMode = !darkMode;
+                document.body.classList.toggle('dark-mode', darkMode);
+                localStorage.setItem('quran-dark-mode', darkMode);
+            });
+
+            document.getElementById('language-toggle').addEventListener('change', (e) => {
+                language = e.target.value;
+                localStorage.setItem('quran-language', language);
+                displayQuran();
+            });
+
+            document.getElementById('goto-button').addEventListener('click', () => {
+                const input = document.getElementById('goto-input').value.trim();
+                const [chapter, verse] = input.split(':').map(Number);
+                if (chapter && verse) goToVerse(chapter, verse);
+                else showError('براہ کرم درست سورۃ اور آیت نمبر درج کریں۔');
+            });
+
+            document.getElementById('prev-theme-page').addEventListener('click', () => {
+                if (currentThemePage > 1) { currentThemePage--; displayThemes(); }
+            });
+            document.getElementById('next-theme-page').addEventListener('click', () => {
+                const totalPages = Math.ceil(getFilteredThemes().length / themesPerPage);
+                if (currentThemePage < totalPages) { currentThemePage++; displayThemes(); }
+            });
+            document.getElementById('prev-theme-page-bottom').addEventListener('click', () => {
+                if (currentThemePage > 1) { currentThemePage--; displayThemes(); }
+            });
+            document.getElementById('next-theme-page-bottom').addEventListener('click', () => {
+                const totalPages = Math.ceil(getFilteredThemes().length / themesPerPage);
+                if (currentThemePage < totalPages) { currentThemePage++; displayThemes(); }
+            });
+
+            document.getElementById('theme-surah-select').addEventListener('change', () => {
+                currentThemePage = 1;
+                populateThemeSelect();
+                displayThemes();
+            });
+            document.getElementById('theme-select').addEventListener('change', () => {
+                currentThemePage = 1;
+                displayThemes();
+            });
+        }
+
+        function updateFontSize() {
+            document.documentElement.style.setProperty('--font-size-base', `${fontSize}%`);
+            localStorage.setItem('quran-font-size', fontSize);
+        }
+
+        function performSearch() {
+            const searchTerm = document.getElementById('search-input').value.trim();
+            document.getElementById('search-input').dataset.active = searchTerm ? 'true' : 'false';
+            currentPage = 1;
+            displayQuran();
+        }
+
+        function filteredVerses() {
+            let verses = [...quranData];
+            if (currentChapter) {
+                verses = verses.filter(verse => verse.chapter_number.toString() === currentChapter);
+            }
+            const searchInput = document.getElementById('search-input');
+            if (searchInput.dataset.active === 'true') {
+                const searchTerm = searchInput.value.trim().toLowerCase();
+                verses = verses.filter(verse =>
+                    (verse.text_urdu && verse.text_urdu.toLowerCase().includes(searchTerm)) ||
+                    (verse.text_english && verse.text_english.toLowerCase().includes(searchTerm))
+                );
+            }
+            return verses;
+        }
+
+        async function loadQuran() {
+            document.getElementById('quran-loading').style.display = 'flex';
+            try {
+                const response = await fetch('Quran.json');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                quranData = data['Verses English'] || [];
+                populateChapterSelect();
+                document.getElementById('quran-loading').style.display = 'none';
+                return quranData;
+            } catch (error) {
+                showError('قرآن لوڈ نہیں ہوسکا: ' + error.message);
+                document.getElementById('quran-loading').style.display = 'none';
+                return [];
+            }
+        }
+
+        function populateChapterSelect() {
+            const chapters = [...new Set(quranData.map(verse => verse.chapter_number))].sort((a, b) => a - b);
+            const select = document.getElementById('chapter-select');
+            chapters.forEach(chapter => {
+                const option = document.createElement('option');
+                option.value = chapter;
+                option.textContent = `سورۃ ${surahNames[chapter] || chapter} (${chapter})`;
+                select.appendChild(option);
+            });
+        }
+
+        function displayQuran() {
+            const container = document.getElementById('quran-container');
+            container.innerHTML = '';
+            const verses = filteredVerses();
+            const startIdx = (currentPage - 1) * versesPerPage;
+            const endIdx = Math.min(startIdx + versesPerPage, verses.length);
+            const pageVerses = verses.slice(startIdx, endIdx);
+            if (pageVerses.length === 0) {
+                container.innerHTML = '<p>کوئی آیات نہیں ملی</p>';
+            } else {
+                pageVerses.forEach(verse => {
+                    const verseDiv = document.createElement('div');
+                    verseDiv.className = 'verse';
+                    verseDiv.dataset.id = `${verse.chapter_number}:${verse.verse_number}`;
+                    const isBookmarked = bookmarks.some(b =>
+                        b.chapter === verse.chapter_number && b.verse === verse.verse_number
+                    );
+                    let textContent = '';
+                    if (language === 'urdu' || language === 'both') {
+                        textContent += `<div class="urdu-text">${verse.text_urdu || 'متن دستیاب نہیں'}</div>`;
+                    }
+                    if (language === 'english' || language === 'both') {
+                        textContent += `<div class="english-text">${verse.text_english || 'Text not available'}</div>`;
+                    }
+                    verseDiv.innerHTML = `
+                        <div class="chapter-badge">${verse.chapter_number}</div>
+                        <div class="verse-number">${verse.verse_number}</div>
+                        ${textContent}
+                        <div class="verse-actions">
+                            <button class="bookmark-btn" title="نشانی لگائیں">
+                                <i class="fas ${isBookmarked ? 'fa-bookmark' : 'fa-bookmark-o'}"></i>
+                            </button>
+                            <button class="audio-btn" title="سنیں">
+                                <i class="fas fa-volume-up"></i>
+                            </button>
+                            <button class="share-btn" title="شیئر کریں">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                        </div>
+                    `;
+                    verseDiv.querySelector('.bookmark-btn').addEventListener('click', () => {
+                        toggleBookmark(verse.chapter_number, verse.verse_number, verse.text_urdu);
+                        const icon = verseDiv.querySelector('.bookmark-btn i');
+                        icon.classList.toggle('fa-bookmark-o');
+                        icon.classList.toggle('fa-bookmark');
+                    });
+                    verseDiv.querySelector('.share-btn').addEventListener('click', () => shareVerse(verse));
+                    verseDiv.querySelector('.audio-btn').addEventListener('click', () =>
+                        playAudio(verse.chapter_number, verse.verse_number)
+                    );
+                    container.appendChild(verseDiv);
+                });
+            }
+            const totalPages = Math.ceil(verses.length / versesPerPage) || 1;
+            document.getElementById('page-info').textContent = `صفحہ ${currentPage}/${totalPages}`;
+            document.getElementById('page-info-bottom').textContent = `صفحہ ${currentPage}/${totalPages}`;
+        }
+
+        function toggleBookmark(chapter, verse, text) {
+            const bookmark = { chapter, verse, text };
+            const index = bookmarks.findIndex(b => b.chapter === chapter && b.verse === verse);
+            if (index === -1) {
+                bookmarks.push(bookmark);
+            } else {
+                bookmarks.splice(index, 1);
+            }
+            localStorage.setItem('quran-bookmarks', JSON.stringify(bookmarks));
+            displayBookmarks();
+        }
+
+        function displayBookmarks() {
+            const container = document.getElementById('bookmarks-container');
+            container.innerHTML = '';
+            if (bookmarks.length === 0) {
+                container.innerHTML = '<p>کوئی نشانیاں نہیں ہیں</p>';
+            } else {
+                bookmarks.forEach(b => {
+                    const bookmarkDiv = document.createElement('div');
+                    bookmarkDiv.className = 'verse';
+                    bookmarkDiv.dataset.id = `${b.chapter}:${b.verse}`;
+                    bookmarkDiv.innerHTML = `
+                        <div class="chapter-badge">${b.chapter}</div>
+                        <div class="verse-number">${b.verse}</div>
+                        <div class="urdu-text">${b.text || 'متن دستیاب نہیں'}</div>
+                        <div class="verse-actions">
+                            <button class="goto-btn" title="دیکھیں">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="remove-btn" title="ہٹائیں">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    bookmarkDiv.querySelector('.goto-btn').addEventListener('click', () => {
+                        goToVerse(b.chapter, b.verse);
+                        document.querySelector('[data-tab="quran"]').click();
+                    });
+                    bookmarkDiv.querySelector('.remove-btn').addEventListener('click', () => {
+                        toggleBookmark(b.chapter, b.verse, b.text);
+                    });
+                    container.appendChild(bookmarkDiv);
+                });
+            }
+        }
+
+        function goToVerse(chapter, verse) {
+            const verseIndex = quranData.findIndex(v =>
+                v.chapter_number === chapter && v.verse_number === verse
+            );
+            if (verseIndex >= 0) {
+                currentChapter = chapter.toString();
+                document.getElementById('chapter-select').value = currentChapter;
+                currentPage = Math.floor(verseIndex / versesPerPage) + 1;
+                displayQuran();
+                setTimeout(() => {
+                    const verseElement = document.querySelector(`[data-id="${chapter}:${verse}"]`);
+                    if (verseElement) verseElement.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+            } else {
+                showError('آیت نہیں ملی۔');
+            }
+        }
+
+        function playAudio(chapter, verse) {
+            const audioUrl = `https://example.com/audio/${chapter}/${verse}.mp3`;
+            const audio = new Audio(audioUrl);
+            audio.play().catch(error => showError('آڈیو چلانے میں خرابی: ' + error.message));
+        }
+
+        function shareVerse(verse) {
+            const text = `${verse.chapter_number}:${verse.verse_number} - ${verse.text_urdu || verse.text_english}`;
+            if (navigator.share) {
+                navigator.share({
+                    title: 'قرآن مجید',
+                    text: text,
+                    url: window.location.href
+                }).catch(error => console.error('Sharing failed:', error));
+            } else {
+                navigator.clipboard.writeText(text).then(() =>
+                    alert('آیت کاپی ہوگئی: ' + text)
+                ).catch(error => showError('کاپی کرنے میں خرابی: ' + error.message));
+            }
+        }
+
+        async function loadThemes() {
+            document.getElementById('themes-loading').style.display = 'flex';
+            try {
+                const response = await fetch('Themes.json');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                themesData = data['Themes English'] || [];
+                document.getElementById('themes-loading').style.display = 'none';
+                return themesData;
+            } catch (error) {
+                showError('میزاجات لوڈ نہیں ہو سکے: ' + error.message);
+                document.getElementById('themes-loading').style.display = 'none';
+                return [];
+            }
+        }
+
+        function getFilteredThemes() {
+            let themes = [...themesData];
+            const surahFilter = document.getElementById('theme-surah-select').value;
+            const themeFilter = document.getElementById('theme-select').value;
+            if (surahFilter) {
+                themes = themes.filter(t => t.surah.toString() === surahFilter);
+            }
+            if (themeFilter) {
+                themes = themes.filter(t => t.theme_name_Urdu === themeFilter);
+            }
+            return themes;
+        }
+
+        function displayThemes() {
+            const container = document.getElementById('themes-container');
+            container.innerHTML = '';
+            const themes = getFilteredThemes();
+            const startIdx = (currentThemePage - 1) * themesPerPage;
+            const endIdx = Math.min(startIdx + themesPerPage, themes.length);
+            const pageThemes = themes.slice(startIdx, endIdx);
+            if (pageThemes.length === 0) {
+                container.innerHTML = '<p>کوئی میزاجات نہیں ملے</p>';
+            } else {
+                pageThemes.forEach(theme => {
+                    const themeDiv = document.createElement('div');
+                    themeDiv.className = 'verse';
+                    const versesText = theme.verses.join(', ');
+                    themeDiv.innerHTML = `
+                        <div class="chapter-badge">${theme.surah}</div>
+                        <div class="verse-number">${versesText}</div>
+                        <div class="urdu-text">${theme.theme_name_Urdu || 'بی نام میزاج'}</div>
+                        <div class="verse-actions">
+                            <button class="goto-btn" title="دیکھیں">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    `;
+                    themeDiv.querySelector('.goto-btn').addEventListener('click', () => {
+                        goToVerse(theme.surah, theme.verses[0]);
+                        document.querySelector('[data-tab="quran"]').click();
+                    });
+                    container.appendChild(themeDiv);
+                });
+            }
+            const totalPages = Math.ceil(themes.length / themesPerPage) || 1;
+            document.getElementById('theme-page-info').textContent = `صفحہ ${currentThemePage}/${totalPages}`;
+            document.getElementById('theme-page-info-bottom').textContent = `صفحہ ${currentThemePage}/${totalPages}`;
+        }
+
+        function populateThemeSelect() {
+            const surahFilter = document.getElementById('theme-surah-select').value;
+            const select = document.getElementById('theme-select');
+            select.innerHTML = '<option value="">میزاج منتخب کریں</option>';
+            const filteredThemes = surahFilter
+                ? themesData.filter(t => t.surah.toString() === surahFilter)
+                : themesData;
+            const themeNames = [...new Set(filteredThemes.map(t => t.theme_name_Urdu))];
+            themeNames.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                select.appendChild(option);
+            });
+        }
+
+        function setupThemePagination() {
+            const surahs = [...new Set(themesData.map(t => t.surah))].sort((a, b) => a - b);
+            const surahSelect = document.getElementById('theme-surah-select');
+            surahs.forEach(surah => {
+                const option = document.createElement('option');
+                option.value = surah;
+                option.textContent = `سورۃ ${surahNames[surah] || surah} (${surah})`;
+                surahSelect.appendChild(option);
+            });
+            populateThemeSelect();
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => errorDiv.style.display = 'none', 5000);
+        }
+
+        async function init() {
+            await loadQuran();
+            await loadThemes();
+            setupThemePagination();
+            displayBookmarks();
+            displayThemes(); // Default tab is "میزاجات"
+        }
+    </script>
+</body>
+</html>

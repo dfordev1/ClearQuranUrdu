@@ -456,6 +456,17 @@
     </div>
     
     <div id="themes-tab" class="tab-content">
+        <div class="controls">
+            <div class="pagination">
+                <button id="prev-theme-page" class="page-button">
+                    <i class="fas fa-chevron-right"></i> پچھلا
+                </button>
+                <span id="theme-page-info">صفحہ 1</span>
+                <button id="next-theme-page" class="page-button">
+                    اگلا <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+        </div>
         <div id="themes-container"></div>
         <div id="themes-loading" class="loading">
             <div class="spinner"></div>
@@ -475,6 +486,9 @@
         let bookmarks = JSON.parse(localStorage.getItem('quran-bookmarks') || '[]');
         let fontSize = parseInt(localStorage.getItem('quran-font-size') || '120');
         let darkMode = localStorage.getItem('quran-dark-mode') === 'true';
+        let themesData = [];
+        let currentThemePage = 1;
+        let themesPerPage = 5;
         
         // Initialize the app
         document.addEventListener('DOMContentLoaded', () => {
@@ -647,16 +661,15 @@
                 }
                 
                 const data = await response.json();
-                const themes = data['Themes of Quran'] || [];
-                console.log('میزاجات لوڈ ہوگئے:', themes.length);
+                themesData = data['Themes of Quran'] || [];
+                console.log('میزاجات لوڈ ہوگئے:', themesData.length);
                 
                 document.getElementById('themes-loading').style.display = 'none';
-                return themes;
+                displayThemes();
             } catch (error) {
                 showError('میزاجات لوڈ نہیں ہوسکے: ' + error.message);
                 console.error('میزاجات لوڈنگ میں خرابی:', error);
                 document.getElementById('themes-loading').style.display = 'none';
-                return [];
             }
         }
         
@@ -756,61 +769,85 @@
             updateFontSize();
         }
         
-        // Display themes
-        function displayThemes(themes) {
-    const container = document.getElementById('themes-container');
-    container.innerHTML = '<h2>قرآن کے میزاجات</h2>';
-    
-    if (!themes || !themes.length) {
-        container.innerHTML += '<p>کوئی میزاج نہیں ملا</p>';
-        return;
-    }
-    
-    themes.forEach(theme => {
-        const themeDiv = document.createElement('div');
-        themeDiv.className = 'theme';
-        themeDiv.innerHTML = `
-            <h3>${theme.theme_name_Urdu || 'بی نام میزاج'}</h3>
-            <p>سورۃ ${theme.chapter_number} کی آیات ${theme.start_verse}-${theme.end_verse}</p>
-            <button class="load-theme-verses" data-chapter="${theme.chapter_number}" data-start="${theme.start_verse}" data-end="${theme.end_verse}">آیات لوڈ کریں</button>
-            <div class="verses-container" style="display:none;"></div>
-        `;
-        container.appendChild(themeDiv);
-    });
+        // Display themes with pagination
+        function displayThemes() {
+            const container = document.getElementById('themes-container');
+            container.innerHTML = '<h2>قرآن کے میزاجات</h2>';
+            
+            const startIdx = (currentThemePage - 1) * themesPerPage;
+            const endIdx = Math.min(startIdx + themesPerPage, themesData.length);
+            const pageThemes = themesData.slice(startIdx, endIdx);
+            
+            if (pageThemes.length === 0) {
+                container.innerHTML += '<p>کوئی میزاج نہیں ملا</p>';
+            } else {
+                pageThemes.forEach(theme => {
+                    const themeDiv = document.createElement('div');
+                    themeDiv.className = 'theme';
+                    themeDiv.innerHTML = `
+                        <h3>${theme.theme_name_Urdu || 'بی نام میزاج'}</h3>
+                        <p>سورۃ ${theme.chapter_number} کی آیات ${theme.start_verse}-${theme.end_verse}</p>
+                        <button class="load-theme-verses" data-chapter="${theme.chapter_number}" data-start="${theme.start_verse}" data-end="${theme.end_verse}">آیات لوڈ کریں</button>
+                        <div class="verses-container" style="display:none;"></div>
+                    `;
+                    container.appendChild(themeDiv);
+                });
+            }
 
-    // Add event listeners for the load buttons
-    document.querySelectorAll('.load-theme-verses').forEach(button => {
-        button.addEventListener('click', () => {
-            const chapter = button.dataset.chapter;
-            const start = button.dataset.start;
-            const end = button.dataset.end;
-            loadThemeVerses(chapter, start, end, button.nextElementSibling);
-            button.style.display = 'none';
-        });
-    });
-}
+            // Update pagination info
+            const totalPages = Math.ceil(themesData.length / themesPerPage);
+            document.getElementById('theme-page-info').textContent = `صفحہ ${currentThemePage}/${totalPages || 1}`;
 
-// Function to load theme verses
-function loadThemeVerses(chapter, start, end, container) {
-    const versesInRange = quranData.filter(verse =>
-        verse.chapter_number === parseInt(chapter) &&
-        verse.verse_number >= parseInt(start) &&
-        verse.verse_number <= parseInt(end)
-    );
+            // Add event listeners for the load buttons
+            document.querySelectorAll('.load-theme-verses').forEach(button => {
+                button.addEventListener('click', () => {
+                    const chapter = button.dataset.chapter;
+                    const start = button.dataset.start;
+                    const end = button.dataset.end;
+                    loadThemeVerses(chapter, start, end, button.nextElementSibling);
+                    button.style.display = 'none';
+                });
+            });
+        }
 
-    versesInRange.forEach(verse => {
-        const verseDiv = document.createElement('div');
-        verseDiv.className = 'verse';
-        verseDiv.innerHTML = `
-            <div class="verse-number">${verse.verse_number}</div>
-            <div class="urdu-text">${verse.text_urdu || 'متن دستیاب نہیں'}</div>
-            ${verse.text_english ? `<div class="english-text">${verse.text_english}</div>` : ''}
-        `;
-        container.appendChild(verseDiv);
-    });
-    container.style.display = 'block';
-    updateFontSize();
+        // Setup event listeners for theme pagination
+        function setupThemePagination() {
+            document.getElementById('prev-theme-page').addEventListener('click', () => {
+                if (currentThemePage > 1) {
+                    currentThemePage--;
+                    displayThemes();
+                }
+            });
 
+            document.getElementById('next-theme-page').addEventListener('click', () => {
+                const totalPages = Math.ceil(themesData.length / themesPerPage);
+                if (currentThemePage < totalPages) {
+                    currentThemePage++;
+                    displayThemes();
+                }
+            });
+        }
+
+        // Function to load theme verses
+        function loadThemeVerses(chapter, start, end, container) {
+            const versesInRange = quranData.filter(verse =>
+                verse.chapter_number === parseInt(chapter) &&
+                verse.verse_number >= parseInt(start) &&
+                verse.verse_number <= parseInt(end)
+            );
+
+            versesInRange.forEach(verse => {
+                const verseDiv = document.createElement('div');
+                verseDiv.className = 'verse';
+                verseDiv.innerHTML = `
+                    <div class="verse-number">${verse.verse_number}</div>
+                    <div class="urdu-text">${verse.text_urdu || 'متن دستیاب نہیں'}</div>
+                    ${verse.text_english ? `<div class="english-text">${verse.text_english}</div>` : ''}
+                `;
+                container.appendChild(verseDiv);
+            });
+            container.style.display = 'block';
+            updateFontSize();
         }
         
         // Toggle bookmark
@@ -953,8 +990,8 @@ function loadThemeVerses(chapter, start, end, container) {
         // Initialize the app
         async function init() {
             await loadQuran();
-            const themes = await loadThemes();
-            displayThemes(themes);
+            await loadThemes();
+            setupThemePagination();
             displayBookmarks();
             displayQuran();
         }

@@ -694,7 +694,7 @@
             });
         }
         
-        // Display Quran verses
+        // Display Quran verses (modified to remove English text)
         function displayQuran() {
             const container = document.getElementById('quran-container');
             container.innerHTML = '';
@@ -712,7 +712,6 @@
                     verseDiv.className = 'verse';
                     verseDiv.dataset.id = `${verse.chapter_number}:${verse.verse_number}`;
                     
-                    // Check if bookmarked
                     const isBookmarked = bookmarks.some(b => 
                         b.chapter === verse.chapter_number && 
                         b.verse === verse.verse_number
@@ -722,7 +721,6 @@
                         <div class="chapter-badge">${verse.chapter_number}</div>
                         <div class="verse-number">${verse.verse_number}</div>
                         <div class="urdu-text">${verse.text_urdu || 'متن دستیاب نہیں'}</div>
-                        ${verse.text_english ? `<div class="english-text">${verse.text_english}</div>` : ''}
                         <div class="verse-actions">
                             <button class="bookmark-btn" title="نشانی لگائیں">
                                 <i class="fas ${isBookmarked ? 'fa-bookmark' : 'fa-bookmark-o'}"></i>
@@ -787,9 +785,25 @@
                     themeDiv.innerHTML = `
                         <h3>${theme.theme_name_Urdu || 'بی نام میزاج'}</h3>
                         <p>سورۃ ${theme.chapter_number} کی آیات ${theme.start_verse}-${theme.end_verse}</p>
-                        <button class="load-theme-verses" data-chapter="${theme.chapter_number}" data-start="${theme.start_verse}" data-end="${theme.end_verse}">آیات لوڈ کریں</button>
-                        <div class="verses-container" style="display:none;"></div>
                     `;
+
+                    // Load verses directly
+                    const versesInRange = quranData.filter(verse =>
+                        verse.chapter_number === parseInt(theme.chapter_number) &&
+                        verse.verse_number >= parseInt(theme.start_verse) &&
+                        verse.verse_number <= parseInt(theme.end_verse)
+                    );
+
+                    versesInRange.forEach(verse => {
+                        const verseDiv = document.createElement('div');
+                        verseDiv.className = 'verse';
+                        verseDiv.innerHTML = `
+                            <div class="verse-number">${verse.verse_number}</div>
+                            <div class="urdu-text">${verse.text_urdu || 'متن دستیاب نہیں'}</div>
+                        `;
+                        themeDiv.appendChild(verseDiv);
+                    });
+
                     container.appendChild(themeDiv);
                 });
             }
@@ -797,17 +811,6 @@
             // Update pagination info
             const totalPages = Math.ceil(themesData.length / themesPerPage);
             document.getElementById('theme-page-info').textContent = `صفحہ ${currentThemePage}/${totalPages || 1}`;
-
-            // Add event listeners for the load buttons
-            document.querySelectorAll('.load-theme-verses').forEach(button => {
-                button.addEventListener('click', () => {
-                    const chapter = button.dataset.chapter;
-                    const start = button.dataset.start;
-                    const end = button.dataset.end;
-                    loadThemeVerses(chapter, start, end, button.nextElementSibling);
-                    button.style.display = 'none';
-                });
-            });
         }
 
         // Setup event listeners for theme pagination
@@ -826,28 +829,6 @@
                     displayThemes();
                 }
             });
-        }
-
-        // Function to load theme verses
-        function loadThemeVerses(chapter, start, end, container) {
-            const versesInRange = quranData.filter(verse =>
-                verse.chapter_number === parseInt(chapter) &&
-                verse.verse_number >= parseInt(start) &&
-                verse.verse_number <= parseInt(end)
-            );
-
-            versesInRange.forEach(verse => {
-                const verseDiv = document.createElement('div');
-                verseDiv.className = 'verse';
-                verseDiv.innerHTML = `
-                    <div class="verse-number">${verse.verse_number}</div>
-                    <div class="urdu-text">${verse.text_urdu || 'متن دستیاب نہیں'}</div>
-                    ${verse.text_english ? `<div class="english-text">${verse.text_english}</div>` : ''}
-                `;
-                container.appendChild(verseDiv);
-            });
-            container.style.display = 'block';
-            updateFontSize();
         }
         
         // Toggle bookmark
@@ -950,16 +931,15 @@
                 }, 100);
             }
         }
-        // Share verse functionality
+        // Share verse functionality (modified to remove English text)
         function shareVerse(verse) {
-            const shareText = `سورۃ ${verse.chapter_number}:${verse.verse_number}\n${verse.text_urdu || ''}\n${verse.text_english ? `\n(${verse.text_english})` : ''}`;
+            const shareText = `سورۃ ${verse.chapter_number}:${verse.verse_number}\n${verse.text_urdu || ''}`;
             if (navigator.share) {
                 navigator.share({
                     title: 'قرآن کی آیت',
                     text: shareText,
                 }).catch((error) => console.error('Sharing failed:', error));
             } else {
-                // Fallback for browsers that do not support Web Share API
                 const textarea = document.createElement('textarea');
                 textarea.value = shareText;
                 document.body.appendChild(textarea);

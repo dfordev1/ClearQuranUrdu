@@ -195,6 +195,12 @@
             align-items: center;
         }
         
+        .controls.bottom {
+            margin-top: 40px;
+            border-top: 1px solid var(--primary-color);
+            padding-top: 20px;
+        }
+        
         .pagination {
             display: flex;
             gap: 5px;
@@ -393,6 +399,16 @@
                 align-items: stretch;
             }
         }
+
+        .theme-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .theme-filters select {
+            min-width: 200px;
+        }
     </style>
 </head>
 <body>
@@ -453,10 +469,30 @@
         <div id="quran-loading" class="loading">
             <div class="spinner"></div>
         </div>
+        <div class="controls bottom">
+            <div></div>
+            <div class="pagination">
+                <button id="prev-page-bottom" class="page-button">
+                    <i class="fas fa-chevron-right"></i> پچھلا
+                </button>
+                <span id="page-info-bottom">صفحہ 1</span>
+                <button id="next-page-bottom" class="page-button">
+                    اگلا <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+        </div>
     </div>
     
     <div id="themes-tab" class="tab-content">
         <div class="controls">
+            <div class="theme-filters">
+                <select id="theme-surah-select" class="chapter-select">
+                    <option value="">سورۃ منتخب کریں</option>
+                </select>
+                <select id="theme-select" class="chapter-select">
+                    <option value="">میزاج منتخب کریں</option>
+                </select>
+            </div>
             <div class="pagination">
                 <button id="prev-theme-page" class="page-button">
                     <i class="fas fa-chevron-right"></i> پچھلا
@@ -470,6 +506,18 @@
         <div id="themes-container"></div>
         <div id="themes-loading" class="loading">
             <div class="spinner"></div>
+        </div>
+        <div class="controls bottom">
+            <div></div>
+            <div class="pagination">
+                <button id="prev-theme-page-bottom" class="page-button">
+                    <i class="fas fa-chevron-right"></i> پچھلا
+                </button>
+                <span id="theme-page-info-bottom">صفحہ 1</span>
+                <button id="next-theme-page-bottom" class="page-button">
+                    اگلا <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
         </div>
     </div>
     
@@ -573,6 +621,38 @@
                 document.body.classList.toggle('dark-mode', darkMode);
                 localStorage.setItem('quran-dark-mode', darkMode);
             });
+
+            // Bottom pagination for Quran
+            document.getElementById('prev-page-bottom').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    displayQuran();
+                }
+            });
+            
+            document.getElementById('next-page-bottom').addEventListener('click', () => {
+                const totalPages = Math.ceil(filteredVerses().length / versesPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    displayQuran();
+                }
+            });
+
+            // Bottom pagination for Themes
+            document.getElementById('prev-theme-page-bottom').addEventListener('click', () => {
+                if (currentThemePage > 1) {
+                    currentThemePage--;
+                    displayThemes();
+                }
+            });
+
+            document.getElementById('next-theme-page-bottom').addEventListener('click', () => {
+                const totalPages = Math.ceil(themesData.length / themesPerPage);
+                if (currentThemePage < totalPages) {
+                    currentThemePage++;
+                    displayThemes();
+                }
+            });
         }
         
         // Update font size
@@ -665,6 +745,8 @@
                 console.log('میزاجات لوڈ ہوگئے:', themesData.length);
                 
                 document.getElementById('themes-loading').style.display = 'none';
+                populateThemeSelectors();
+                setupThemeSelectors();
                 displayThemes();
             } catch (error) {
                 showError('میزاجات لوڈ نہیں ہوسکے: ' + error.message);
@@ -762,6 +844,7 @@
             // Update pagination info
             const totalPages = Math.ceil(verses.length / versesPerPage);
             document.getElementById('page-info').textContent = `صفحہ ${currentPage}/${totalPages || 1}`;
+            document.getElementById('page-info-bottom').textContent = `صفحہ ${currentPage}/${totalPages || 1}`;
             
             // Update font size for new elements
             updateFontSize();
@@ -772,9 +855,24 @@
             const container = document.getElementById('themes-container');
             container.innerHTML = '<h2>قرآن کے میزاجات</h2>';
             
+            const selectedSurah = document.getElementById('theme-surah-select').value;
+            const selectedTheme = document.getElementById('theme-select').value;
+            
+            let filteredThemes = [...themesData];
+            if (selectedSurah) {
+                filteredThemes = filteredThemes.filter(theme => 
+                    theme.chapter_number.toString() === selectedSurah
+                );
+            }
+            if (selectedTheme) {
+                filteredThemes = filteredThemes.filter(theme => 
+                    theme.theme_name_Urdu === selectedTheme
+                );
+            }
+            
             const startIdx = (currentThemePage - 1) * themesPerPage;
-            const endIdx = Math.min(startIdx + themesPerPage, themesData.length);
-            const pageThemes = themesData.slice(startIdx, endIdx);
+            const endIdx = Math.min(startIdx + themesPerPage, filteredThemes.length);
+            const pageThemes = filteredThemes.slice(startIdx, endIdx);
             
             if (pageThemes.length === 0) {
                 container.innerHTML += '<p>کوئی میزاج نہیں ملا</p>';
@@ -784,10 +882,9 @@
                     themeDiv.className = 'theme';
                     themeDiv.innerHTML = `
                         <h3>${theme.theme_name_Urdu || 'بی نام میزاج'}</h3>
-                        <p>سورۃ ${theme.chapter_number} کی آیات ${theme.start_verse}-${theme.end_verse}</p>
+                        <p>سورۃ ${surahNames[theme.chapter_number]} (${theme.chapter_number}) کی آیات ${theme.start_verse}-${theme.end_verse}</p>
                     `;
 
-                    // Load verses directly
                     const versesInRange = quranData.filter(verse =>
                         verse.chapter_number === parseInt(theme.chapter_number) &&
                         verse.verse_number >= parseInt(theme.start_verse) &&
@@ -809,8 +906,9 @@
             }
 
             // Update pagination info
-            const totalPages = Math.ceil(themesData.length / themesPerPage);
+            const totalPages = Math.ceil(filteredThemes.length / themesPerPage);
             document.getElementById('theme-page-info').textContent = `صفحہ ${currentThemePage}/${totalPages || 1}`;
+            document.getElementById('theme-page-info-bottom').textContent = `صفحہ ${currentThemePage}/${totalPages || 1}`;
         }
 
         // Setup event listeners for theme pagination
@@ -974,6 +1072,47 @@
             setupThemePagination();
             displayBookmarks();
             displayQuran();
+        }
+
+        // Add function to populate theme selectors
+        function populateThemeSelectors() {
+            const surahSelect = document.getElementById('theme-surah-select');
+            const themeSelect = document.getElementById('theme-select');
+            
+            // Populate Surah select
+            const uniqueSurahs = [...new Set(themesData.map(theme => theme.chapter_number))];
+            uniqueSurahs.sort((a, b) => a - b);
+            uniqueSurahs.forEach(surahNum => {
+                const option = document.createElement('option');
+                option.value = surahNum;
+                option.textContent = `${surahNames[surahNum]} (${surahNum})`;
+                surahSelect.appendChild(option);
+            });
+            
+            // Populate Theme select
+            const uniqueThemes = [...new Set(themesData.map(theme => theme.theme_name_Urdu))];
+            uniqueThemes.sort();
+            uniqueThemes.forEach(theme => {
+                if (theme) {
+                    const option = document.createElement('option');
+                    option.value = theme;
+                    option.textContent = theme;
+                    themeSelect.appendChild(option);
+                }
+            });
+        }
+
+        // Add event listeners for theme selectors
+        function setupThemeSelectors() {
+            document.getElementById('theme-surah-select').addEventListener('change', () => {
+                currentThemePage = 1;
+                displayThemes();
+            });
+            
+            document.getElementById('theme-select').addEventListener('change', () => {
+                currentThemePage = 1;
+                displayThemes();
+            });
         }
     </script>
 </body>

@@ -758,44 +758,59 @@
         
         // Display themes
         function displayThemes(themes) {
-            const container = document.getElementById('themes-container');
-            container.innerHTML = '<h2>قرآن کے میزاجات</h2>';
-            
-            if (!themes || !themes.length) {
-                container.innerHTML += '<p>کوئی میزاج نہیں ملا</p>';
-                return;
-            }
-            
-            themes.forEach(theme => {
-                const versesInRange = quranData.filter(verse =>
-                    verse.chapter_number === theme.chapter_number &&
-                    verse.verse_number >= theme.start_verse &&
-                    verse.verse_number <= theme.end_verse
-                );
-                
-                const themeDiv = document.createElement('div');
-                themeDiv.className = 'theme';
-                themeDiv.innerHTML = `
-                    <h3>${theme.theme_name_Urdu || 'بی نام میزاج'}</h3>
-                    <p>سورۃ ${theme.chapter_number} کی آیات ${theme.start_verse}-${theme.end_verse}</p>
-                `;
-                
-                versesInRange.forEach(verse => {
-                    const verseDiv = document.createElement('div');
-                    verseDiv.className = 'verse';
-                    verseDiv.innerHTML = `
-                        <div class="verse-number">${verse.verse_number}</div>
-                        <div class="urdu-text">${verse.text_urdu || 'متن دستیاب نہیں'}</div>
-                        ${verse.text_english ? `<div class="english-text">${verse.text_english}</div>` : ''}
-                    `;
-                    themeDiv.appendChild(verseDiv);
-                });
-                
-                container.appendChild(themeDiv);
-            });
-            
-            // Update font size for new elements
-            updateFontSize();
+    const container = document.getElementById('themes-container');
+    container.innerHTML = '<h2>قرآن کے میزاجات</h2>';
+    
+    if (!themes || !themes.length) {
+        container.innerHTML += '<p>کوئی میزاج نہیں ملا</p>';
+        return;
+    }
+    
+    themes.forEach(theme => {
+        const themeDiv = document.createElement('div');
+        themeDiv.className = 'theme';
+        themeDiv.innerHTML = `
+            <h3>${theme.theme_name_Urdu || 'بی نام میزاج'}</h3>
+            <p>سورۃ ${theme.chapter_number} کی آیات ${theme.start_verse}-${theme.end_verse}</p>
+            <button class="load-theme-verses" data-chapter="${theme.chapter_number}" data-start="${theme.start_verse}" data-end="${theme.end_verse}">آیات لوڈ کریں</button>
+            <div class="verses-container" style="display:none;"></div>
+        `;
+        container.appendChild(themeDiv);
+    });
+
+    // Add event listeners for the load buttons
+    document.querySelectorAll('.load-theme-verses').forEach(button => {
+        button.addEventListener('click', () => {
+            const chapter = button.dataset.chapter;
+            const start = button.dataset.start;
+            const end = button.dataset.end;
+            loadThemeVerses(chapter, start, end, button.nextElementSibling);
+            button.style.display = 'none';
+        });
+    });
+}
+
+// Function to load theme verses
+function loadThemeVerses(chapter, start, end, container) {
+    const versesInRange = quranData.filter(verse =>
+        verse.chapter_number === parseInt(chapter) &&
+        verse.verse_number >= parseInt(start) &&
+        verse.verse_number <= parseInt(end)
+    );
+
+    versesInRange.forEach(verse => {
+        const verseDiv = document.createElement('div');
+        verseDiv.className = 'verse';
+        verseDiv.innerHTML = `
+            <div class="verse-number">${verse.verse_number}</div>
+            <div class="urdu-text">${verse.text_urdu || 'متن دستیاب نہیں'}</div>
+            ${verse.text_english ? `<div class="english-text">${verse.text_english}</div>` : ''}
+        `;
+        container.appendChild(verseDiv);
+    });
+    container.style.display = 'block';
+    updateFontSize();
+
         }
         
         // Toggle bookmark

@@ -560,7 +560,7 @@
             18: "الكهف",
             19: "مريم",
             20: "طه",
-            21: "الأنبياء",
+            21: "الأنبیاء",
             22: "الحج",
             23: "المؤمنون",
             24: "النور",
@@ -979,20 +979,7 @@
             const container = document.getElementById('themes-container');
             container.innerHTML = '<h2>قرآن کے میزاجات</h2>';
             
-            const selectedSurah = document.getElementById('theme-surah-select').value;
-            const selectedTheme = document.getElementById('theme-select').value;
-            
-            let filteredThemes = [...themesData];
-            if (selectedSurah) {
-                filteredThemes = filteredThemes.filter(theme => 
-                    theme.chapter_number.toString() === selectedSurah
-                );
-            }
-            if (selectedTheme) {
-                filteredThemes = filteredThemes.filter(theme => 
-                    theme.theme_name_Urdu === selectedTheme
-                );
-            }
+            const filteredThemes = getFilteredThemes();
             
             const startIdx = (currentThemePage - 1) * themesPerPage;
             const endIdx = Math.min(startIdx + themesPerPage, filteredThemes.length);
@@ -1035,21 +1022,43 @@
             document.getElementById('theme-page-info-bottom').textContent = `صفحہ ${currentThemePage}/${totalPages || 1}`;
         }
 
-        // Setup event listeners for theme pagination
-        function setupThemePagination() {
-            document.getElementById('prev-theme-page').addEventListener('click', () => {
-                if (currentThemePage > 1) {
-                    currentThemePage--;
-                    displayThemes();
-                }
-            });
+        function getFilteredThemes() {
+            const selectedSurah = document.getElementById('theme-surah-select').value;
+            const selectedTheme = document.getElementById('theme-select').value;
+            
+            let filtered = [...themesData];
 
-            document.getElementById('next-theme-page').addEventListener('click', () => {
-                const totalPages = Math.ceil(themesData.length / themesPerPage);
-                if (currentThemePage < totalPages) {
-                    currentThemePage++;
-                    displayThemes();
-                }
+            // Apply filters one by one
+            if (selectedSurah) {
+                filtered = filtered.filter(theme => 
+                    theme.chapter_number.toString() === selectedSurah
+                );
+            }
+            
+            if (selectedTheme) {
+                filtered = filtered.filter(theme => 
+                    theme.theme_name_Urdu === selectedTheme
+                );
+            }
+
+            return filtered;
+        }
+
+        // Update the theme selectors setup
+        function setupThemeSelectors() {
+            const surahSelect = document.getElementById('theme-surah-select');
+            const themeSelect = document.getElementById('theme-select');
+            
+            surahSelect.addEventListener('change', () => {
+                // Reset theme selection when surah changes
+                themeSelect.value = '';
+                currentThemePage = 1;
+                displayThemes();
+            });
+            
+            themeSelect.addEventListener('change', () => {
+                currentThemePage = 1;
+                displayThemes();
             });
         }
         
@@ -1228,16 +1237,115 @@
 
         // Add event listeners for theme selectors
         function setupThemeSelectors() {
-            document.getElementById('theme-surah-select').addEventListener('change', () => {
+            const surahSelect = document.getElementById('theme-surah-select');
+            const themeSelect = document.getElementById('theme-select');
+            
+            surahSelect.addEventListener('change', () => {
+                // Reset theme selection when surah changes
+                themeSelect.value = '';
                 currentThemePage = 1;
                 displayThemes();
             });
             
-            document.getElementById('theme-select').addEventListener('change', () => {
+            themeSelect.addEventListener('change', () => {
                 currentThemePage = 1;
                 displayThemes();
             });
         }
+
+        // Add loading state management
+        let isLoading = {
+            quran: false,
+            themes: false
+        };
+
+        function setLoading(type, state) {
+            isLoading[type] = state;
+            document.getElementById(`${type}-loading`).style.display = state ? 'flex' : 'none';
+        }
+
+        // Add error boundary wrapper
+        function errorBoundary(fn) {
+            return async (...args) => {
+                try {
+                    await fn(...args);
+                } catch (error) {
+                    showError(`خرابی: ${error.message}`);
+                    console.error(error);
+                }
+            };
+        }
+
+        // Add debounced search
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        const debouncedSearch = debounce(performSearch, 300);
+
+        // Add caching mechanism
+        const cache = {
+            quran: null,
+            themes: null
+        };
+
+        async function getCachedData(type, loader) {
+            if (!cache[type]) {
+                setLoading(type, true);
+                cache[type] = await loader();
+                setLoading(type, false);
+            }
+            return cache[type];
+        }
+
+        // Add lazy loading for verse decorations
+        function setupLazyLoading() {
+            if ('IntersectionObserver' in window) {
+                const imageObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            img.src = img.dataset.src;
+                            observer.unobserve(img);
+                        }
+                    });
+                });
+
+                document.querySelectorAll('img[data-src]').forEach(img => {
+                    imageObserver.observe(img);
+                });
+            }
+        }
+
+        // Add theme persistence
+        function setupThemePersistence() {
+            const savedTheme = localStorage.getItem('quran-theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            }
+        }
+
+        // Add performance monitoring
+        const performance = {
+            mark(name) {
+                if (window.performance) {
+                    window.performance.mark(name);
+                }
+            },
+            measure(name, startMark, endMark) {
+                if (window.performance) {
+                    window.performance.measure(name, startMark, endMark);
+                }
+            }
+        };
     </script>
 </body>
 </html>

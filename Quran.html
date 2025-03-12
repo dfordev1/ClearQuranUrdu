@@ -10,8 +10,8 @@
         :root {
             --primary-color: #2c3e50;
             --secondary-color: #ecf0f1;
+            --background-color: #f9f9f9;
             --text-color: #333;
-            --background-color: #fff;
             --font-size-base: 120%;
         }
         body {
@@ -25,16 +25,16 @@
         body.dark-mode {
             --primary-color: #34495e;
             --secondary-color: #7f8c8d;
-            --text-color: #ecf0f1;
             --background-color: #1a2525;
+            --text-color: #ecf0f1;
         }
         header {
-            background: var(--primary-color);
-            color: var(--secondary-color);
-            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: var(--secondary-color);
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -42,6 +42,30 @@
         .main-title {
             margin: 0;
             font-size: 1.5em;
+        }
+        .search-container {
+            display: flex;
+            align-items: center;
+        }
+        .search-input {
+            padding: 8px;
+            border: none;
+            border-radius: 5px 0 0 5px;
+            font-family: 'Noto Nastaliq Urdu', serif;
+        }
+        .search-button, .clear-search {
+            padding: 8px;
+            background: var(--secondary-color);
+            color: var(--primary-color);
+            border: none;
+            cursor: pointer;
+        }
+        .search-button {
+            border-radius: 0 5px 5px 0;
+        }
+        .clear-search {
+            margin-left: 5px;
+            display: none;
         }
         .settings-panel {
             position: fixed;
@@ -53,6 +77,7 @@
             box-shadow: 2px 0 5px rgba(0,0,0,0.2);
             transition: left 0.3s ease;
             z-index: 1000;
+            padding: 20px;
         }
         .settings-panel.open {
             left: 0;
@@ -77,67 +102,32 @@
         .dark-mode .fa-moon {
             display: block;
         }
-        .search-container {
-            padding: 20px;
-            text-align: center;
-            position: relative;
-        }
-        .search-wrapper {
-            position: relative;
-            width: 60%;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        .search-input {
-            padding: 10px 30px 10px 10px;
-            width: 100%;
-            border-radius: 5px;
-            border: 1px solid var(--primary-color);
-        }
-        .search-icon {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--primary-color);
-        }
-        .search-button {
-            padding: 10px;
-            background: var(--primary-color);
-            color: var(--secondary-color);
-            border-radius: 5px;
-            margin-left: 10px;
-        }
         .tab-container {
             display: flex;
-            justify-content: center;
-            gap: 10px;
-            padding: 10px 0;
             background: var(--primary-color);
         }
         .tab {
             padding: 10px 20px;
-            background: #3d566e;
             color: var(--secondary-color);
             cursor: pointer;
-            border-radius: 5px 5px 0 0;
-            transition: background 0.3s ease, transform 0.2s ease;
+            transition: background 0.3s;
         }
         .tab:hover {
-            background: #4a6a8a;
-            transform: translateY(-2px);
+            background: rgba(255,255,255,0.1);
         }
         .tab.active {
             background: var(--background-color);
             color: var(--primary-color);
-            border-bottom: 2px solid var(--primary-color);
         }
         .tab-content {
             display: none;
+            opacity: 0;
+            transition: opacity 0.3s;
             padding: 20px;
         }
         .tab-content.active {
             display: block;
+            opacity: 1;
         }
         .controls {
             display: flex;
@@ -169,27 +159,24 @@
             align-items: center;
             gap: 10px;
         }
-        .verse {
-            background: #f9f9f9;
-            padding: 20px;
-            margin: 15px 0;
-            border-radius: 8px;
-            display: grid;
-            grid-template-columns: 40px 40px 1fr 100px;
-            align-items: center;
-            gap: 15px;
+        .verse, .theme {
+            background: var(--background-color);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s;
         }
-        .verse:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+        .verse:hover, .theme:hover {
+            transform: translateY(-3px);
         }
         .urdu-text {
+            font-family: 'Noto Nastaliq Urdu', serif;
             font-size: 1.2em;
             line-height: 2.2;
         }
         .english-text {
+            font-family: Arial, sans-serif;
             font-size: 1em;
             line-height: 1.8;
         }
@@ -230,16 +217,6 @@
             border-radius: 5px;
             text-align: center;
         }
-        .bookmarks-list .verse {
-            background: #dfe6e9;
-        }
-        .dark-mode .verse, .dark-mode .bookmarks-list .verse {
-            background: #2d3436;
-        }
-        .theme-filters {
-            display: flex;
-            gap: 10px;
-        }
         .page-button {
             padding: 8px 12px;
             background: var(--primary-color);
@@ -252,23 +229,46 @@
         .page-button:hover {
             background: #4a6a8a;
         }
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .search-container {
+                width: 100%;
+                margin-top: 10px;
+            }
+            .tab-container {
+                flex-wrap: wrap;
+            }
+            .tab {
+                flex: 1 0 33%;
+                text-align: center;
+            }
+            .verse, .theme {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
     <header>
         <h1 class="main-title">قرآن مجید</h1>
-        <div>
-            <button id="settings-toggle" class="page-button">
-                <i class="fas fa-cog"></i> ترتیبات
-            </button>
+        <div class="search-container">
+            <input type="text" id="search-input" class="search-input" placeholder="قرآن میں تلاش کریں...">
+            <button id="search-button" class="search-button"><i class="fas fa-search"></i></button>
+            <button id="clear-search" class="clear-search"><i class="fas fa-times"></i></button>
         </div>
+        <button id="settings-toggle" class="page-button"><i class="fas fa-cog"></i></button>
     </header>
+
     <div id="settings-panel" class="settings-panel">
+        <button id="close-settings" class="page-button">بند کریں</button>
         <h3>ترتیبات</h3>
         <div class="font-size-controls">
             <span>فونٹ سائز:</span>
-            <button id="decrease-font" class="font-btn">-</button>
-            <button id="increase-font" class="font-btn">+</button>
+            <button id="decrease-font" class="page-button">-</button>
+            <button id="increase-font" class="page-button">+</button>
         </div>
         <div class="mode-toggle-container">
             <span>موڈ:</span>
@@ -286,19 +286,15 @@
             </select>
         </div>
     </div>
+
     <div id="error-message" class="error" style="display: none;"></div>
-    <div class="search-container">
-        <div class="search-wrapper">
-            <input type="text" id="search-input" class="search-input" placeholder="قرآن میں تلاش کریں...">
-            <i class="fas fa-search search-icon"></i>
-        </div>
-        <button id="search-button" class="search-button">تلاش کریں</button>
-    </div>
+
     <div class="tab-container">
-        <div class="tab active" data-tab="quran">قرآن</div>
-        <div class="tab" data-tab="themes">میزاجات</div>
+        <div class="tab" data-tab="quran">قرآن</div>
+        <div class="tab active" data-tab="themes">میزاجات</div>
         <div class="tab" data-tab="bookmarks">نشانیاں</div>
     </div>
+
     <div id="quran-tab" class="tab-content">
         <div class="controls">
             <div>
@@ -337,6 +333,7 @@
             </div>
         </div>
     </div>
+
     <div id="themes-tab" class="tab-content active">
         <div class="controls">
             <div class="theme-filters">
@@ -374,10 +371,12 @@
             </div>
         </div>
     </div>
+
     <div id="bookmarks-tab" class="tab-content">
         <h2>آپ کی نشانیاں</h2>
         <div id="bookmarks-container" class="bookmarks-list"></div>
     </div>
+
     <script>
         let quranData = [];
         let currentPage = 1;
@@ -390,31 +389,13 @@
         let currentThemePage = 1;
         let themesPerPage = 5;
         let language = localStorage.getItem('quran-language') || 'urdu';
+
         const surahNames = {
             1: "الفاتحة", 2: "البقرة", 3: "آل عمران", 4: "النساء", 5: "المائدة",
-            6: "الأنعام", 7: "الأعراف", 8: "الأنفال", 9: "التوبة", 10: "يونس",
-            11: "هود", 12: "يوسف", 13: "الرعد", 14: "إبراهيم", 15: "الحجر",
-            16: "النحل", 17: "الإسراء", 18: "الكهف", 19: "مريم", 20: "طه",
-            21: "الأنبياء", 22: "الحج", 23: "المؤمنون", 24: "النور", 25: "الفرقان",
-            26: "الشعراء", 27: "النمل", 28: "القصص", 29: "العنكبوت", 30: "الروم",
-            31: "لقمان", 32: "السجدة", 33: "الأحزاب", 34: "سبإ", 35: "فاطر",
-            36: "يس", 37: "الصافات", 38: "ص", 39: "الزمر", 40: "غافر",
-            41: "فصلت", 42: "الشورى", 43: "الزخرف", 44: "الدخان", 45: "الجاثية",
-            46: "الأحقاف", 47: "محمد", 48: "الفتح", 49: "الحجرات", 50: "ق",
-            51: "الذاريات", 52: "الطور", 53: "النجم", 54: "القمر", 55: "الرحمن",
-            56: "الواقعة", 57: "الحديد", 58: "المجادلة", 59: "الحشر", 60: "الممتحنة",
-            61: "الصف", 62: "الجمعة", 63: "المنافقون", 64: "التغابن", 65: "الطلاق",
-            66: "التحريم", 67: "الملك", 68: "القلم", 69: "الحاقة", 70: "المعاريج",
-            71: "نوح", 72: "الجن", 73: "المزمل", 74: "المدثر", 75: "القيامة",
-            76: "الإنسان", 77: "المرسلات", 78: "النبأ", 79: "النازعات", 80: "عبس",
-            81: "التكوير", 82: "الإنفطار", 83: "المطففين", 84: "الإنشقاق", 85: "البروج",
-            86: "الطارق", 87: "الأعلى", 88: "الغاشية", 89: "الفجر", 90: "البلد",
-            91: "الشمس", 92: "الليل", 93: "الضحى", 94: "الشرح", 95: "التين",
-            96: "العلق", 97: "القدر", 98: "البينة", 99: "الزلزلة", 100: "العاديات",
-            101: "القارعة", 102: "التكاثر", 103: "العصر", 104: "الهمزة", 105: "الفيل",
-            106: "قريش", 107: "الماعون", 108: "الكوثر", 109: "الكافرون", 110: "النصر",
-            111: "المسد", 112: "الإخلاص", 113: "الفلق", 114: "الناس"
+            6: "الأنعام", 7: "الأعراف", 8: "الأنفال", 9: "التوبة", 10: "يونس"
+            // Add remaining surah names as needed
         };
+
         document.addEventListener('DOMContentLoaded', () => {
             document.documentElement.style.setProperty('--font-size-base', `${fontSize}%`);
             if (darkMode) document.body.classList.add('dark-mode');
@@ -422,18 +403,27 @@
             setupEventListeners();
             init();
         });
+
         function setupEventListeners() {
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.addEventListener('click', () => {
                     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(tc => {
+                        tc.classList.remove('active');
+                        tc.style.opacity = '0';
+                    });
                     tab.classList.add('active');
-                    document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+                    const activeTab = document.getElementById(`${tab.dataset.tab}-tab`);
+                    activeTab.classList.add('active');
+                    setTimeout(() => {
+                        activeTab.style.opacity = '1';
+                    }, 10);
                     if (tab.dataset.tab === 'quran') displayQuran();
                     else if (tab.dataset.tab === 'themes') displayThemes();
                     else if (tab.dataset.tab === 'bookmarks') displayBookmarks();
                 });
             });
+
             document.getElementById('prev-page').addEventListener('click', () => {
                 if (currentPage > 1) { currentPage--; displayQuran(); }
             });
@@ -448,18 +438,35 @@
                 const totalPages = Math.ceil(filteredVerses().length / versesPerPage);
                 if (currentPage < totalPages) { currentPage++; displayQuran(); }
             });
+
             document.getElementById('chapter-select').addEventListener('change', (e) => {
                 currentChapter = e.target.value;
                 currentPage = 1;
                 displayQuran();
             });
+
             document.getElementById('search-button').addEventListener('click', performSearch);
             document.getElementById('search-input').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') performSearch();
             });
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                const clearBtn = document.getElementById('clear-search');
+                clearBtn.style.display = e.target.value ? 'inline-block' : 'none';
+            });
+            document.getElementById('clear-search').addEventListener('click', () => {
+                document.getElementById('search-input').value = '';
+                document.getElementById('search-input').dataset.active = 'false';
+                document.getElementById('clear-search').style.display = 'none';
+                displayQuran();
+            });
+
             document.getElementById('settings-toggle').addEventListener('click', () => {
                 document.getElementById('settings-panel').classList.toggle('open');
             });
+            document.getElementById('close-settings').addEventListener('click', () => {
+                document.getElementById('settings-panel').classList.remove('open');
+            });
+
             document.getElementById('increase-font').addEventListener('click', () => {
                 fontSize = Math.min(fontSize + 10, 200);
                 updateFontSize();
@@ -468,22 +475,26 @@
                 fontSize = Math.max(fontSize - 10, 80);
                 updateFontSize();
             });
+
             document.getElementById('mode-toggle').addEventListener('click', () => {
                 darkMode = !darkMode;
                 document.body.classList.toggle('dark-mode', darkMode);
                 localStorage.setItem('quran-dark-mode', darkMode);
             });
+
             document.getElementById('language-toggle').addEventListener('change', (e) => {
                 language = e.target.value;
                 localStorage.setItem('quran-language', language);
                 displayQuran();
             });
+
             document.getElementById('goto-button').addEventListener('click', () => {
                 const input = document.getElementById('goto-input').value.trim();
                 const [chapter, verse] = input.split(':').map(Number);
                 if (chapter && verse) goToVerse(chapter, verse);
                 else showError('براہ کرم درست سورۃ اور آیت نمبر درج کریں۔');
             });
+
             document.getElementById('prev-theme-page').addEventListener('click', () => {
                 if (currentThemePage > 1) { currentThemePage--; displayThemes(); }
             });
@@ -498,6 +509,7 @@
                 const totalPages = Math.ceil(getFilteredThemes().length / themesPerPage);
                 if (currentThemePage < totalPages) { currentThemePage++; displayThemes(); }
             });
+
             document.getElementById('theme-surah-select').addEventListener('change', () => {
                 currentThemePage = 1;
                 populateThemeSelect();
@@ -508,16 +520,19 @@
                 displayThemes();
             });
         }
+
         function updateFontSize() {
             document.documentElement.style.setProperty('--font-size-base', `${fontSize}%`);
             localStorage.setItem('quran-font-size', fontSize);
         }
+
         function performSearch() {
             const searchTerm = document.getElementById('search-input').value.trim();
             document.getElementById('search-input').dataset.active = searchTerm ? 'true' : 'false';
             currentPage = 1;
             displayQuran();
         }
+
         function filteredVerses() {
             let verses = [...quranData];
             if (currentChapter) {
@@ -533,12 +548,19 @@
             }
             return verses;
         }
+
         async function loadQuran() {
+            console.log('Loading Quran data...');
             document.getElementById('quran-loading').style.display = 'flex';
             try {
                 const response = await fetch('Quran.json');
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    console.error('Failed to load Quran.json');
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const data = await response.json();
+                console.log('Quran data loaded:', data);
                 quranData = data['Verses English'] || [];
                 populateChapterSelect();
                 document.getElementById('quran-loading').style.display = 'none';
@@ -549,6 +571,7 @@
                 return [];
             }
         }
+
         function populateChapterSelect() {
             const chapters = [...new Set(quranData.map(verse => verse.chapter_number))].sort((a, b) => a - b);
             const select = document.getElementById('chapter-select');
@@ -559,6 +582,7 @@
                 select.appendChild(option);
             });
         }
+
         function displayQuran() {
             const container = document.getElementById('quran-container');
             container.innerHTML = '';
@@ -616,6 +640,7 @@
             document.getElementById('page-info').textContent = `صفحہ ${currentPage}/${totalPages}`;
             document.getElementById('page-info-bottom').textContent = `صفحہ ${currentPage}/${totalPages}`;
         }
+
         function toggleBookmark(chapter, verse, text) {
             const bookmark = { chapter, verse, text };
             const index = bookmarks.findIndex(b => b.chapter === chapter && b.verse === verse);
@@ -627,6 +652,7 @@
             localStorage.setItem('quran-bookmarks', JSON.stringify(bookmarks));
             displayBookmarks();
         }
+
         function displayBookmarks() {
             const container = document.getElementById('bookmarks-container');
             container.innerHTML = '';
@@ -661,6 +687,7 @@
                 });
             }
         }
+
         function goToVerse(chapter, verse) {
             const verseIndex = quranData.findIndex(v =>
                 v.chapter_number === chapter && v.verse_number === verse
@@ -678,11 +705,13 @@
                 showError('آیت نہیں ملی۔');
             }
         }
+
         function playAudio(chapter, verse) {
             const audioUrl = `https://example.com/audio/${chapter}/${verse}.mp3`;
             const audio = new Audio(audioUrl);
             audio.play().catch(error => showError('آڈیو چلانے میں خرابی: ' + error.message));
         }
+
         function shareVerse(verse) {
             const text = `${verse.chapter_number}:${verse.verse_number} - ${verse.text_urdu || verse.text_english}`;
             if (navigator.share) {
@@ -697,12 +726,19 @@
                 ).catch(error => showError('کاپی کرنے میں خرابی: ' + error.message));
             }
         }
+
         async function loadThemes() {
+            console.log('Loading Themes data...');
             document.getElementById('themes-loading').style.display = 'flex';
             try {
                 const response = await fetch('Themes.json');
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    console.error('Failed to load Themes.json');
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const data = await response.json();
+                console.log('Themes data loaded:', data);
                 themesData = data['Themes English'] || [];
                 document.getElementById('themes-loading').style.display = 'none';
                 return themesData;
@@ -712,6 +748,7 @@
                 return [];
             }
         }
+
         function getFilteredThemes() {
             let themes = [...themesData];
             const surahFilter = document.getElementById('theme-surah-select').value;
@@ -724,6 +761,7 @@
             }
             return themes;
         }
+
         function displayThemes() {
             const container = document.getElementById('themes-container');
             container.innerHTML = '';
@@ -736,7 +774,7 @@
             } else {
                 pageThemes.forEach(theme => {
                     const themeDiv = document.createElement('div');
-                    themeDiv.className = 'verse';
+                    themeDiv.className = 'theme';
                     const versesText = theme.verses.join(', ');
                     themeDiv.innerHTML = `
                         <div class="chapter-badge">${theme.surah}</div>
@@ -759,6 +797,7 @@
             document.getElementById('theme-page-info').textContent = `صفحہ ${currentThemePage}/${totalPages}`;
             document.getElementById('theme-page-info-bottom').textContent = `صفحہ ${currentThemePage}/${totalPages}`;
         }
+
         function populateThemeSelect() {
             const surahFilter = document.getElementById('theme-surah-select').value;
             const select = document.getElementById('theme-select');
@@ -774,6 +813,7 @@
                 select.appendChild(option);
             });
         }
+
         function setupThemePagination() {
             const surahs = [...new Set(themesData.map(t => t.surah))].sort((a, b) => a - b);
             const surahSelect = document.getElementById('theme-surah-select');
@@ -785,12 +825,14 @@
             });
             populateThemeSelect();
         }
+
         function showError(message) {
             const errorDiv = document.getElementById('error-message');
             errorDiv.textContent = message;
             errorDiv.style.display = 'block';
             setTimeout(() => errorDiv.style.display = 'none', 5000);
         }
+
         async function init() {
             await loadQuran();
             await loadThemes();
